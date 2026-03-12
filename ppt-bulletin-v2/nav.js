@@ -1,5 +1,5 @@
 // Slide Navigation Module
-// Include this script in any slide: <script src="../nav.js" data-prev="slide-00.html" data-next="slide-02.html"></script>
+// Includes localStorage persistence and AI integration support
 
 (function() {
   if (window._navLoaded) return;
@@ -79,17 +79,99 @@
       margin-left: 4px;
       opacity: 0.7;
     }
+    
+    /* AI Controls */
+    .ai-controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 8px;
+      z-index: 100;
+    }
+    .ai-btn {
+      font-size: 12px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--line, #eee);
+      background: var(--page, #fafaf8);
+      color: var(--muted, #666);
+      cursor: pointer;
+      font-family: system-ui, sans-serif;
+      transition: all 0.15s ease;
+    }
+    .ai-btn:hover {
+      border-color: var(--terracotta, #c17f59);
+      color: var(--ink, #333);
+    }
+    .ai-btn.active {
+      background: var(--primary-green, #1f4b3f);
+      color: white;
+      border-color: var(--primary-green, #1f4b3f);
+    }
+    .ai-btn.assist {
+      background: var(--panel, #f5f0e9);
+    }
+    .ai-btn.present {
+      background: var(--terracotta, #c17f59);
+      color: white;
+      border-color: var(--terracotta, #c17f59);
+    }
+    
+    /* AI Status */
+    .ai-status {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      font-size: 11px;
+      color: var(--muted, #666);
+      font-family: system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 100;
+    }
+    .ai-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted, #ccc);
+    }
+    .ai-status-dot.connected {
+      background: #22c55e;
+    }
+    .ai-status-dot.speaking {
+      background: var(--terracotta, #c17f59);
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
   `;
 
   const styleEl = document.createElement('style');
   styleEl.textContent = styles;
   document.head.appendChild(styleEl);
 
+  // Get slide info from data attributes
   const scriptEl = document.currentScript;
   const prevSlide = scriptEl?.dataset?.prev;
   const nextSlide = scriptEl?.dataset?.next;
   const currentSlide = scriptEl?.dataset?.current || '';
   const totalSlides = scriptEl?.dataset?.total || '';
+
+  // Save state to localStorage
+  try {
+    const state = {
+      currentSlideId: currentSlide,
+      mode: 'manual',
+      updatedAt: new Date().toISOString()
+    };
+    localStorage.setItem('beforest_bulletin_session', JSON.stringify(state));
+  } catch (e) {
+    console.log('Could not save state:', e);
+  }
 
   const nav = document.createElement('nav');
   nav.className = 'slide-nav';
@@ -120,6 +202,34 @@
   nav.innerHTML = leftSection + rightSection;
   document.body.appendChild(nav);
 
+  // Add AI controls
+  const aiControls = document.createElement('div');
+  aiControls.className = 'ai-controls';
+  aiControls.innerHTML = `
+    <button class="ai-btn assist" id="ai-ask" title="Ask AI about this slide">Ask AI</button>
+    <button class="ai-btn present" id="ai-present" title="Let AI present">Present</button>
+  `;
+  document.body.appendChild(aiControls);
+
+  // Add AI status
+  const aiStatus = document.createElement('div');
+  aiStatus.className = 'ai-status';
+  aiStatus.innerHTML = `
+    <span class="ai-status-dot" id="ai-status-dot"></span>
+    <span id="ai-status-text">Manual</span>
+  `;
+  document.body.appendChild(aiStatus);
+
+  // AI button handlers (placeholder - will be implemented with OpenAI)
+  document.getElementById('ai-ask')?.addEventListener('click', () => {
+    alert('AI Assist mode coming soon! This will allow you to ask questions about the current slide.');
+  });
+  
+  document.getElementById('ai-present')?.addEventListener('click', () => {
+    alert('Presenter mode coming soon! This will let AI present the slides with voice.');
+  });
+
+  // Keyboard navigation
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft' && prevSlide) {
       window.location.href = prevSlide;

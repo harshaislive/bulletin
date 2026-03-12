@@ -256,6 +256,90 @@ app.post('/api/create-session', async (req, res) => {
   }
 });
 
+// AI Presentation endpoint - generates script for a slide
+app.post('/api/ai-present', async (req, res) => {
+  try {
+    const { slideId, action } = req.body;
+    const currentSlide = getSlideById(slideId);
+    
+    if (!currentSlide) {
+      return res.json({ error: 'Slide not found' });
+    }
+
+    let nextSlideId = null;
+    let shouldEnd = false;
+
+    // Determine next slide
+    if (action === 'next' || action === 'start') {
+      const next = getNextSlide(slideId);
+      if (next) {
+        nextSlideId = next.id;
+      } else {
+        shouldEnd = true;
+      }
+    }
+
+    // Generate presentation script using AI if available, otherwise use template
+    let script = '';
+    
+    if (openai) {
+      const systemPrompt = `You are a professional presenter for Beforest, an ecological organization. 
+Generate a 2-3 sentence presentation script for the current slide.
+- Keep it conversational and natural
+- Highlight key points from the title and tags
+- End with what comes next or wrap up
+
+Current slide:
+- Team: ${currentSlide.team}
+- Title: ${currentSlide.title}
+- Tags: ${currentSlide.tags.join(', ')}`;
+
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: 'Generate a brief presentation script for this slide.' }
+        ],
+        temperature: 0.7,
+        max_tokens: 150
+      });
+
+      script = response.choices[0]?.message?.content || '';
+    } else {
+      // Fallback script without AI
+      script = generateFallbackScript(currentSlide);
+    }
+
+    res.json({
+      slide: currentSlide,
+      script,
+      nextSlideId,
+      shouldEnd
+    });
+  } catch (err) {
+    console.error('AI present error:', err);
+    res.json({ error: err.message });
+  }
+});
+
+function generateFallbackScript(slide) {
+  const team = slide.team.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  
+  const scripts = {
+    intro: `Welcome to ${team}. Let's explore what they accomplished this month.`,
+    cover: `Now let's dive into ${slide.title}.`,
+    schema: `Here's a breakdown of their activities, outputs, outcomes, and impact.`,
+    thankyou: `Thank you for your attention. Let's continue to the next team.`,
+    end: `That's all for now.`
+  };
+
+  for (const [tag, text] of Object.entries(scripts)) {
+    if (slide.tags.includes(tag)) return text;
+  }
+  
+  return `Let's look at ${slide.title}.`;
+}
+
 // AI Chat endpoint (text-based, not Realtime)
 app.post('/api/chat', async (req, res) => {
   try {

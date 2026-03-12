@@ -207,20 +207,6 @@
   nav.innerHTML = leftSection + rightSection;
   document.body.appendChild(nav);
 
-  // Add AI status only (no chat buttons)
-  const aiStatus = document.createElement('div');
-  aiStatus.className = 'ai-status';
-  aiStatus.innerHTML = `
-    <span class="ai-status-dot" id="ai-status-dot"></span>
-    <span id="ai-status-text">Manual</span>
-  `;
-  document.body.appendChild(aiStatus);
-
-  // Load AI client script (optional - for future use)
-  // const aiScript = document.createElement('script');
-  // aiScript.src = './ai/ai-client.js';
-  // document.body.appendChild(aiScript);
-
   // Keyboard navigation
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft' && prevSlide) {
@@ -232,8 +218,9 @@
     }
   });
 
-  // Load AI Presenter
-  const presenterScript = document.createElement('script');
-  presenterScript.src = '/ai-presenter.js';
-  document.body.appendChild(presenterScript);
+  if (currentSlide) {
+    const presenterScript = document.createElement('script');
+    presenterScript.src = '/ai-presenter.js';
+    document.body.appendChild(presenterScript);
+  }
 })();

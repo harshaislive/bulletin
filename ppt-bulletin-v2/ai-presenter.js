@@ -1,457 +1,436 @@
-// AI Presenter - Auto-presentation with TTS
-// No chat UI, just voice and auto-navigation
+// AI Presenter - voice narration with auto-advance.
 
 (function() {
   if (window._presenterLoaded) return;
   window._presenterLoaded = true;
 
   const API_BASE = '';
+  const STORAGE_KEY = 'beforest_presenter_state';
 
-  let isPresenting = false;
-  let currentSlideId = null;
+  const folderToPrefix = {
+    bi: 'bi',
+    'bhopal-collective': 'bhopal',
+    hospitality: 'hospitality',
+    'community-experience': 'community',
+    bewild: 'bewild',
+    'mumbai-collective': 'mumbai',
+    'hammiyala-collective': 'hammiyala',
+    'bodakonda-collective': 'bodakonda',
+    'poomaale-1-0': 'poomaale1',
+    'poomaale-2-0': 'poomaale2',
+    'human-resources': 'hr',
+    cds: 'cds'
+  };
+
+  const slideIdToPath = {
+    'bi-intro': '/bi/slide-00-intro.html',
+    'bi-cover': '/bi/slide-01-cover.html',
+    'bi-openclaw': '/bi/slide-02-openclaw.html',
+    'bi-schema': '/bi/slide-03-schema.html',
+    'bi-workflows': '/bi/slide-04-workflows.html',
+    'bi-thankyou': '/bi/slide-05-thankyou.html',
+    'bhopal-intro': '/bhopal-collective/slide-00-intro.html',
+    'bhopal-cover': '/bhopal-collective/slide-01-cover.html',
+    'bhopal-schema': '/bhopal-collective/slide-02-schema.html',
+    'bhopal-agriculture': '/bhopal-collective/slide-03-agriculture.html',
+    'bhopal-experience': '/bhopal-collective/slide-04-experience.html',
+    'hospitality-intro': '/hospitality/slide-00-intro.html',
+    'hospitality-cover': '/hospitality/slide-01-cover.html',
+    'hospitality-schema': '/hospitality/slide-02-schema.html',
+    'hospitality-food': '/hospitality/slide-03-food.html',
+    'hospitality-arrival': '/hospitality/slide-04-arrival.html',
+    'community-intro': '/community-experience/slide-00-intro.html',
+    'community-cover': '/community-experience/slide-01-cover.html',
+    'community-schema': '/community-experience/slide-02-schema.html',
+    'community-bhopal': '/community-experience/slide-03-bhopal.html',
+    'community-mumbai': '/community-experience/slide-04-mumbai.html',
+    'bewild-intro': '/bewild/slide-00-intro.html',
+    'bewild-cover': '/bewild/slide-01-cover.html',
+    'bewild-schema': '/bewild/slide-02-schema.html',
+    'bewild-storefront': '/bewild/slide-03-storefront.html',
+    'bewild-market': '/bewild/slide-04-market.html',
+    'mumbai-intro': '/mumbai-collective/slide-00-intro.html',
+    'mumbai-cover': '/mumbai-collective/slide-01-cover.html',
+    'mumbai-field': '/mumbai-collective/slide-03-field.html',
+    'mumbai-protection': '/mumbai-collective/slide-04-protection.html',
+    'mumbai-experience': '/mumbai-collective/slide-05-experience.html',
+    'hammiyala-intro': '/hammiyala-collective/slide-00-intro.html',
+    'hammiyala-cover': '/hammiyala-collective/slide-01-cover.html',
+    'hammiyala-schema': '/hammiyala-collective/slide-02-schema.html',
+    'hammiyala-crop': '/hammiyala-collective/slide-03-crop.html',
+    'hammiyala-boundary': '/hammiyala-collective/slide-04-boundary.html',
+    'hammiyala-infra': '/hammiyala-collective/slide-05-infra.html',
+    'bodakonda-intro': '/bodakonda-collective/slide-00-intro.html',
+    'bodakonda-cover': '/bodakonda-collective/slide-01-cover.html',
+    'bodakonda-schema': '/bodakonda-collective/slide-02-schema.html',
+    'bodakonda-farming': '/bodakonda-collective/slide-03-farming.html',
+    'bodakonda-systems': '/bodakonda-collective/slide-04-systems.html',
+    'bodakonda-biodiversity': '/bodakonda-collective/slide-05-biodiversity.html',
+    'poomaale1-intro': '/poomaale-1-0/slide-00-intro.html',
+    'poomaale1-cover': '/poomaale-1-0/slide-01-cover.html',
+    'poomaale1-schema': '/poomaale-1-0/slide-02-schema.html',
+    'poomaale1-harvest': '/poomaale-1-0/slide-03-harvest.html',
+    'poomaale1-infra': '/poomaale-1-0/slide-04-infra.html',
+    'poomaale2-intro': '/poomaale-2-0/slide-00-intro.html',
+    'poomaale2-cover': '/poomaale-2-0/slide-01-cover.html',
+    'poomaale2-schema': '/poomaale-2-0/slide-02-schema.html',
+    'poomaale2-crop': '/poomaale-2-0/slide-03-crop.html',
+    'poomaale2-safety': '/poomaale-2-0/slide-04-safety.html',
+    'hr-intro': '/human-resources/slide-00-intro.html',
+    'hr-cover': '/human-resources/slide-01-cover.html',
+    'hr-schema': '/human-resources/slide-02-schema.html',
+    'hr-onboarding': '/human-resources/slide-03-onboarding.html',
+    'hr-fitness': '/human-resources/slide-04-fitness.html',
+    'cds-intro': '/cds/slide-00-intro.html',
+    'cds-cover': '/cds/slide-01-cover.html',
+    'cds-schema': '/cds/slide-02-schema.html',
+    'cds-gis': '/cds/slide-03-gis.html',
+    'cds-tools': '/cds/slide-04-tools.html'
+  };
+
   let utterance = null;
   let sessionId = null;
-  let presentationMode = 'manual';
 
   const styles = `
-    .present-btn {
+    .presenter-dock {
       position: fixed;
-      bottom: 20px;
+      top: 20px;
       right: 20px;
-      background: #c17f59;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 24px;
-      font-size: 14px;
-      font-family: system-ui, sans-serif;
-      cursor: pointer;
-      z-index: 1000;
       display: flex;
       align-items: center;
       gap: 8px;
-      transition: all 0.2s ease;
+      z-index: 1100;
     }
-    .present-btn:hover {
-      background: #a66b47;
-      transform: scale(1.02);
-    }
-    .present-btn:disabled {
-      background: #999;
-      cursor: not-allowed;
-    }
-    .present-btn.stop {
-      background: #dc2626;
-    }
-    .present-btn.stop:hover {
-      background: #b91c1c;
-    }
-    .present-btn.paused {
-      background: #0d2620;
-    }
-    .present-btn.paused:hover {
-      background: #1f4b3f;
-    }
-    .present-controls {
-      position: fixed;
-      bottom: 20px;
-      right: 140px;
-      display: flex;
-      gap: 8px;
-      z-index: 1000;
-    }
-    .present-controls button {
-      background: #f5f0e9;
-      border: 1px solid #ddd;
-      padding: 8px 12px;
-      border-radius: 16px;
-      font-size: 12px;
+    .presenter-btn {
+      border: 1px solid rgba(13, 38, 32, 0.12);
+      background: rgba(250, 250, 248, 0.96);
+      color: #0d2620;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font: 12px/1 system-ui, sans-serif;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
       cursor: pointer;
-      font-family: system-ui, sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 30px rgba(13, 38, 32, 0.08);
     }
-    .present-controls button:hover {
+    .presenter-btn:hover {
       border-color: #c17f59;
     }
-    .present-status {
+    .presenter-btn--primary {
+      background: #0d2620;
+      color: #fafaf8;
+      border-color: #0d2620;
+    }
+    .presenter-btn--primary:hover {
+      background: #1f4b3f;
+      border-color: #1f4b3f;
+    }
+    .presenter-btn--paused {
+      background: #c17f59;
+      color: #fafaf8;
+      border-color: #c17f59;
+    }
+    .presenter-status {
       position: fixed;
       top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #0d2620;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-family: system-ui, sans-serif;
-      z-index: 1000;
+      left: 20px;
+      max-width: min(420px, calc(100vw - 40px));
+      background: rgba(13, 38, 32, 0.94);
+      color: #fafaf8;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font: 12px/1.4 system-ui, sans-serif;
+      letter-spacing: 0.02em;
+      z-index: 1100;
       display: none;
     }
-    .present-status.active {
+    .presenter-status.active {
       display: block;
+    }
+    @media (max-width: 900px) {
+      .presenter-dock {
+        top: auto;
+        bottom: 76px;
+        right: 20px;
+        left: 20px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+      }
+      .presenter-status {
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        max-width: none;
+      }
     }
   `;
 
-  const styleEl = document.createElement('style');
-  styleEl.textContent = styles;
-  document.head.appendChild(styleEl);
-
-  // Get current slide ID from URL
-  function getCurrentSlideId() {
-    const path = window.location.pathname;
-    const match = path.match(/([^\/]+)\/slide-\d+-([^.]+)\.html$/);
-    if (match) {
-      const team = match[1];
-      const slideType = match[2];
-      return `${team}-${slideType}`;
+  function readState() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    } catch (err) {
+      return {};
     }
-    // Try index page
-    const indexMatch = path.match(/\/([^\/]+)\/index\.html$/);
-    if (indexMatch) {
-      return `${indexMatch[1]}-intro`;
-    }
-    return null;
   }
 
-  // Create Present button
-  function createPresentButton() {
-    const btn = document.createElement('button');
-    btn.className = 'present-btn';
-    btn.id = 'ai-present-btn';
-    btn.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M8 5v14l11-7z"/>
-      </svg>
-      <span>Present</span>
-    `;
-    btn.onclick = togglePresentation;
-    document.body.appendChild(btn);
+  function writeState(next) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  }
 
-    const controls = document.createElement('div');
-    controls.className = 'present-controls';
-    controls.id = 'present-controls';
-    controls.innerHTML = `
-      <button id="start-from-begin">Start from Begin</button>
-    `;
-    document.body.appendChild(controls);
+  function clearState() {
+    localStorage.removeItem(STORAGE_KEY);
+  }
 
-    document.getElementById('start-from-begin').onclick = startFromBeginning;
+  function isSlidePage() {
+    return /\/slide-\d+-[^/]+\.html$/.test(window.location.pathname);
+  }
+
+  function getCurrentSlideId() {
+    const match = window.location.pathname.match(/\/([^/]+)\/slide-\d+-([^.]+)\.html$/);
+    if (!match) return null;
+    const folder = match[1];
+    const slug = match[2];
+    const prefix = folderToPrefix[folder];
+    return prefix ? `${prefix}-${slug}` : null;
+  }
+
+  function getPathForSlide(slideId) {
+    return slideIdToPath[slideId] || null;
+  }
+
+  function setStatus(message) {
+    const el = document.getElementById('presenter-status');
+    if (!el) return;
+    el.textContent = message;
+    el.classList.add('active');
+  }
+
+  function clearStatus() {
+    const el = document.getElementById('presenter-status');
+    if (!el) return;
+    el.classList.remove('active');
+  }
+
+  function renderControls() {
+    if (!isSlidePage()) return;
+
+    const styleEl = document.createElement('style');
+    styleEl.textContent = styles;
+    document.head.appendChild(styleEl);
+
+    const dock = document.createElement('div');
+    dock.className = 'presenter-dock';
+    dock.innerHTML = `
+      <button id="presenter-restart" class="presenter-btn" type="button">From Start</button>
+      <button id="presenter-toggle" class="presenter-btn presenter-btn--primary" type="button">
+        <span id="presenter-toggle-label">Present</span>
+      </button>
+    `;
+    document.body.appendChild(dock);
 
     const status = document.createElement('div');
-    status.className = 'present-status';
-    status.id = 'present-status';
+    status.id = 'presenter-status';
+    status.className = 'presenter-status';
     document.body.appendChild(status);
+
+    document.getElementById('presenter-toggle').addEventListener('click', onToggleClick);
+    document.getElementById('presenter-restart').addEventListener('click', restartFromBeginning);
+
+    syncButtons();
   }
 
-  async function startFromBeginning() {
-    stopPresentation();
-    isPresenting = true;
-    currentSlideId = 'bi-intro';
-    updateButtonState(true, false);
-    showStatus('Starting from beginning...');
-    await navigateToSlide('bi-intro');
-    await sleep(2000);
-    await presentSlide('bi-intro', 'start');
-  }
+  function syncButtons() {
+    const state = readState();
+    const toggle = document.getElementById('presenter-toggle');
+    const label = document.getElementById('presenter-toggle-label');
+    const restart = document.getElementById('presenter-restart');
+    if (!toggle || !label || !restart) return;
 
-  let isPaused = false;
+    toggle.classList.remove('presenter-btn--primary', 'presenter-btn--paused');
 
-  function updateButtonState(presenting, paused = false) {
-    const btn = document.getElementById('ai-present-btn');
-    if (!btn) return;
-    
-    const span = btn.querySelector('span');
-    if (!presenting) {
-      btn.classList.remove('stop');
-      span.textContent = 'Present';
-      btn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 5v14l11-7z"/>
-        </svg>
-        <span>Present</span>
-      `;
-    } else if (paused) {
-      btn.classList.remove('stop');
-      btn.classList.add('paused');
-      span.textContent = 'Resume';
-      btn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 5v14l11-7z"/>
-        </svg>
-        <span>Resume</span>
-      `;
+    if (state.active && state.paused) {
+      toggle.classList.add('presenter-btn--paused');
+      label.textContent = 'Resume';
+    } else if (state.active) {
+      toggle.classList.add('presenter-btn--paused');
+      label.textContent = 'Pause';
     } else {
-      btn.classList.add('stop');
-      btn.classList.remove('paused');
-      span.textContent = 'Pause';
-      btn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="4" width="4" height="16"/>
-          <rect x="14" y="4" width="4" height="16"/>
-        </svg>
-        <span>Pause</span>
-      `;
+      toggle.classList.add('presenter-btn--primary');
+      label.textContent = 'Present';
     }
+
+    restart.style.display = state.active ? 'none' : 'inline-flex';
   }
 
-  function showStatus(message) {
-    const status = document.getElementById('present-status');
-    status.textContent = message;
-    status.classList.add('active');
+  async function onToggleClick() {
+    const state = readState();
+    if (!state.active) {
+      await startPresentation(getCurrentSlideId(), 'start');
+      return;
+    }
+    if (state.paused) {
+      resumePresentation();
+      return;
+    }
+    pausePresentation();
   }
 
-  function hideStatus() {
-    const status = document.getElementById('present-status');
-    status.classList.remove('active');
+  async function restartFromBeginning() {
+    await startPresentation('bi-intro', 'start', true);
   }
 
-  async function togglePresentation() {
-    if (isPresenting) {
-      if (isPaused) {
-        resumePresentation();
-      } else {
-        pausePresentation();
+  async function startPresentation(slideId, action, navigateFirst) {
+    if (!slideId) return;
+    const nextState = {
+      active: true,
+      paused: false,
+      currentSlideId: slideId,
+      action: action || 'start',
+      autoStartOnLoad: !!navigateFirst
+    };
+    writeState(nextState);
+    syncButtons();
+
+    if (navigateFirst) {
+      const path = getPathForSlide(slideId);
+      if (path && window.location.pathname !== path) {
+        window.location.href = path;
+        return;
       }
-    } else {
-      startPresentation();
     }
+
+    setStatus('Starting presenter...');
+    await presentCurrentSlide();
   }
 
   function pausePresentation() {
-    isPaused = true;
-    if (utterance) {
+    const state = readState();
+    writeState({ ...state, active: true, paused: true, autoStartOnLoad: false });
+    if (speechSynthesis.speaking && !speechSynthesis.paused) {
       speechSynthesis.pause();
     }
-    updateButtonState(true, true);
-    showStatus('Paused - click Resume to continue');
+    setStatus('Paused');
+    syncButtons();
   }
 
   function resumePresentation() {
-    isPaused = false;
-    if (utterance) {
+    const state = readState();
+    writeState({ ...state, active: true, paused: false, autoStartOnLoad: false });
+    if (speechSynthesis.paused) {
       speechSynthesis.resume();
+      setStatus('Resumed');
+    } else {
+      presentCurrentSlide();
     }
-    updateButtonState(true, false);
-    showStatus('Resuming...');
-  }
-
-  async function startPresentation() {
-    isPresenting = true;
-    currentSlideId = getCurrentSlideId();
-    
-    if (!currentSlideId) {
-      alert('Could not determine current slide');
-      isPresenting = false;
-      return;
-    }
-
-    const controls = document.getElementById('present-controls');
-    if (controls) controls.style.display = 'none';
-
-    updateButtonState(true, false);
-    showStatus('Starting presentation...');
-
-    await presentSlide(currentSlideId, 'start');
+    syncButtons();
   }
 
   function stopPresentation() {
-    isPresenting = false;
-    isPaused = false;
-    if (utterance) {
+    clearState();
+    if (speechSynthesis.speaking || speechSynthesis.paused) {
       speechSynthesis.cancel();
-      utterance = null;
     }
-    updateButtonState(false);
-    hideStatus();
-    const controls = document.getElementById('present-controls');
-    if (controls) controls.style.display = 'flex';
+    utterance = null;
+    clearStatus();
+    syncButtons();
   }
 
-  async function presentSlide(slideId, action) {
-    if (!isPresenting || isPaused) return;
+  async function presentCurrentSlide() {
+    const state = readState();
+    const slideId = getCurrentSlideId();
+    if (!state.active || state.paused || !slideId) return;
+
+    writeState({ ...state, currentSlideId: slideId, autoStartOnLoad: false });
+    syncButtons();
 
     try {
+      await ensureSession();
+      await saveSlideState(slideId, 'presenter');
+
       const res = await fetch(`${API_BASE}/api/ai-present`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slideId, action })
+        body: JSON.stringify({ slideId, action: state.action || 'next' })
       });
-
       const data = await res.json();
 
-      if (data.error) {
-        console.error('AI error:', data.error);
+      if (!res.ok || data.error) {
+        setStatus('Presenter unavailable');
         stopPresentation();
         return;
       }
 
-      // Show current slide
-      showStatus(`Presenting: ${data.slide.title}`);
-
-      // Save current slide state
-      presentationMode = 'presenter';
-      await saveSlideState(slideId, presentationMode);
-
-      // Speak the script
+      setStatus(`Presenting ${data.slide.title}`);
       await speak(data.script);
 
-      if (!isPresenting) return;
+      const latest = readState();
+      if (!latest.active || latest.paused) return;
 
-      // Navigate to next slide if available
       if (data.nextSlideId && !data.shouldEnd) {
-        await navigateToSlide(data.nextSlideId);
-        // Small pause before next slide
-        await sleep(1500);
-        // Continue presentation
-        await presentSlide(data.nextSlideId, 'next');
-      } else if (data.shouldEnd) {
-        showStatus('Presentation complete!');
-        await sleep(2000);
-        stopPresentation();
+        const path = getPathForSlide(data.nextSlideId);
+        if (!path) {
+          stopPresentation();
+          return;
+        }
+        writeState({
+          ...latest,
+          currentSlideId: data.nextSlideId,
+          action: 'next',
+          autoStartOnLoad: true
+        });
+        window.location.href = path;
+        return;
       }
+
+      if (sessionId) {
+        await saveSummary(`Presentation completed on ${new Date().toISOString()}`, [], []);
+      }
+      setStatus('Presentation complete');
+      window.setTimeout(() => {
+        stopPresentation();
+      }, 1200);
     } catch (err) {
-      console.error('Presentation error:', err);
-      stopPresentation();
+      console.error('Presenter error:', err);
+      setStatus('Presenter unavailable');
+      window.setTimeout(() => stopPresentation(), 1200);
     }
   }
 
   function speak(text) {
     return new Promise((resolve) => {
-      if (!isPresenting) {
+      const state = readState();
+      if (!state.active || state.paused) {
         resolve();
         return;
       }
 
-      utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.9;
+      utterance = new SpeechSynthesisUtterance(text || '');
+      utterance.rate = 0.96;
       utterance.pitch = 1;
       utterance.volume = 1;
 
-      // Try to find a good English voice
       const voices = speechSynthesis.getVoices();
-      const englishVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) 
-        || voices.find(v => v.lang.startsWith('en'));
-      if (englishVoice) {
-        utterance.voice = englishVoice;
-      }
+      const voice = voices.find((item) => item.lang && item.lang.toLowerCase().startsWith('en'));
+      if (voice) utterance.voice = voice;
 
       utterance.onend = () => resolve();
       utterance.onerror = () => resolve();
-
+      speechSynthesis.cancel();
       speechSynthesis.speak(utterance);
     });
   }
 
-  function navigateToSlide(slideId) {
-    return new Promise((resolve) => {
-      // Parse slideId to get team and slide type
-      // Format: team-slidetype (e.g., bi-cover, bhopal-collective-intro)
-      const parts = slideId.split('-');
-      
-      // Find the team folder and slide file
-      let team = '';
-      let slideNum = '01';
-      let slideType = '';
-
-      // Determine team and slide info
-      const teamMap = {
-        'bi': 'bi',
-        'bhopal': 'bhopal-collective',
-        'hospitality': 'hospitality',
-        'community': 'community-experience',
-        'bewild': 'bewild',
-        'mumbai': 'mumbai-collective',
-        'hammiyala': 'hammiyala-collective',
-        'bodakonda': 'bodakonda-collective',
-        'poomaale1': 'poomaale-1-0',
-        'poomaale2': 'poomaale-2-0',
-        'hr': 'human-resources',
-        'cds': 'cds'
-      };
-
-      for (const [key, value] of Object.entries(teamMap)) {
-        if (slideId.startsWith(key)) {
-          team = value;
-          const remainder = slideId.slice(key.length + 1);
-          
-          // Map slide type to number
-          const typeMap = {
-            'intro': '00',
-            'cover': '01',
-            'openclaw': '02',
-            'schema': '02',
-            'workflows': '03',
-            'thankyou': '99',
-            'agriculture': '03',
-            'experience': '04',
-            'food': '03',
-            'arrival': '04',
-            'bhopal': '03',
-            'mumbai': '04',
-            'storefront': '03',
-            'market': '04',
-            'field': '03',
-            'protection': '04',
-            'crop': '03',
-            'boundary': '04',
-            'infra': '05',
-            'farming': '03',
-            'systems': '04',
-            'biodiversity': '05',
-            'harvest': '03',
-            'safety': '04',
-            'onboarding': '03',
-            'fitness': '04',
-            'gis': '03',
-            'tools': '04'
-          };
-          
-          slideType = typeMap[remainder] || '01';
-          break;
-        }
-      }
-
-      if (team) {
-        const slidePath = `${team}/slide-${slideType}-${slideId.split('-').pop()}.html`;
-        window.location.href = slidePath;
-      } else {
-        console.error('Could not parse slide ID:', slideId);
-        resolve();
-      }
-
-      // Give time for page to load
-      setTimeout(resolve, 3000);
-    });
-  }
-
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  // Session management with Supabase
-  async function initSession() {
-    // Check for existing session in localStorage
-    const savedSession = localStorage.getItem('beforest_session_id');
-    
-    if (savedSession) {
-      try {
-        const res = await fetch(`${API_BASE}/api/load-session`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId: savedSession })
-        });
-        const data = await res.json();
-        if (data.currentSlideId) {
-          sessionId = savedSession;
-          presentationMode = data.mode || 'manual';
-          console.log('Resumed session:', sessionId);
-          return;
-        }
-      } catch (e) {
-        console.log('Could not load session:', e);
-      }
+  async function ensureSession() {
+    if (sessionId) return;
+    const saved = localStorage.getItem('beforest_session_id');
+    if (saved) {
+      sessionId = saved;
+      return;
     }
-    
-    // Create new session
+
     try {
       const res = await fetch(`${API_BASE}/api/create-session`, {
         method: 'POST',
@@ -462,10 +441,9 @@
       if (data.sessionId) {
         sessionId = data.sessionId;
         localStorage.setItem('beforest_session_id', sessionId);
-        console.log('Created new session:', sessionId);
       }
-    } catch (e) {
-      console.log('Could not create session:', e);
+    } catch (err) {
+      sessionId = null;
     }
   }
 
@@ -477,8 +455,8 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, slideId, mode })
       });
-    } catch (e) {
-      console.log('Could not save slide state:', e);
+    } catch (err) {
+      // noop
     }
   }
 
@@ -490,23 +468,41 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, summary, keyQuestions, unresolvedPoints })
       });
-    } catch (e) {
-      console.log('Could not save summary:', e);
+    } catch (err) {
+      // noop
     }
   }
 
-  // Initialize
-  createPresentButton();
-  initSession();
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && isPresenting) {
-      e.preventDefault();
-      togglePresentation();
+  function handleKeydown(event) {
+    const state = readState();
+    if (!state.active) return;
+    if (event.code === 'Space') {
+      event.preventDefault();
+      onToggleClick();
     }
-    if (e.key === 'Escape' && isPresenting) {
+    if (event.key === 'Escape') {
       stopPresentation();
     }
-  });
+  }
+
+  function maybeResumeOnLoad() {
+    const state = readState();
+    if (!state.active || state.paused || !state.autoStartOnLoad) {
+      syncButtons();
+      return;
+    }
+
+    const slideId = getCurrentSlideId();
+    if (slideId && slideId === state.currentSlideId) {
+      window.setTimeout(() => {
+        presentCurrentSlide();
+      }, 350);
+    }
+  }
+
+  if (isSlidePage()) {
+    renderControls();
+    document.addEventListener('keydown', handleKeydown);
+    maybeResumeOnLoad();
+  }
 })();

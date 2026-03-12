@@ -10,6 +10,8 @@
   let isPresenting = false;
   let currentSlideId = null;
   let utterance = null;
+  let sessionId = null;
+  let presentationMode = 'manual';
 
   const styles = `
     .present-btn {
@@ -194,6 +196,10 @@
       // Show current slide
       showStatus(`Presenting: ${data.slide.title}`);
 
+      // Save current slide state
+      presentationMode = 'presenter';
+      await saveSlideState(slideId, presentationMode);
+
       // Speak the script
       await speak(data.script);
 
@@ -330,6 +336,75 @@
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  // Session management with Supabase
+  async function initSession() {
+    // Check for existing session in localStorage
+    const savedSession = localStorage.getItem('beforest_session_id');
+    
+    if (savedSession) {
+      try {
+        const res = await fetch(`${API_BASE}/api/load-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId: savedSession })
+        });
+        const data = await res.json();
+        if (data.currentSlideId) {
+          sessionId = savedSession;
+          presentationMode = data.mode || 'manual';
+          console.log('Resumed session:', sessionId);
+          return;
+        }
+      } catch (e) {
+        console.log('Could not load session:', e);
+      }
+    }
+    
+    // Create new session
+    try {
+      const res = await fetch(`${API_BASE}/api/create-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (data.sessionId) {
+        sessionId = data.sessionId;
+        localStorage.setItem('beforest_session_id', sessionId);
+        console.log('Created new session:', sessionId);
+      }
+    } catch (e) {
+      console.log('Could not create session:', e);
+    }
+  }
+
+  async function saveSlideState(slideId, mode) {
+    if (!sessionId) return;
+    try {
+      await fetch(`${API_BASE}/api/save-slide-state`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, slideId, mode })
+      });
+    } catch (e) {
+      console.log('Could not save slide state:', e);
+    }
+  }
+
+  async function saveSummary(summary, keyQuestions, unresolvedPoints) {
+    if (!sessionId) return;
+    try {
+      await fetch(`${API_BASE}/api/save-summary`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, summary, keyQuestions, unresolvedPoints })
+      });
+    } catch (e) {
+      console.log('Could not save summary:', e);
+    }
+  }
+
   // Initialize
   createPresentButton();
+  initSession();
 })();

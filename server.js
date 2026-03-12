@@ -135,7 +135,7 @@ app.post('/api/load-session', async (req, res) => {
   try {
     const { sessionId } = req.body;
     
-    if (!sessionId) {
+    if (!sessionId || !supabase) {
       return res.json({ currentSlideId: 'bi-intro', mode: 'manual', memory: {} });
     }
     
@@ -165,7 +165,7 @@ app.post('/api/save-slide-state', async (req, res) => {
   try {
     const { sessionId, slideId, mode } = req.body;
     
-    if (sessionId) {
+    if (sessionId && supabase) {
       await supabase
         .from('presentation_sessions')
         .update({ current_slide_id: slideId, mode, last_activity_at: new Date().toISOString() })
@@ -184,7 +184,7 @@ app.post('/api/save-summary', async (req, res) => {
   try {
     const { sessionId, summary, keyQuestions, unresolvedPoints } = req.body;
     
-    if (sessionId) {
+    if (sessionId && supabase) {
       await supabase
         .from('presentation_memory')
         .update({ 
@@ -206,6 +206,11 @@ app.post('/api/save-summary', async (req, res) => {
 // Create session
 app.post('/api/create-session', async (req, res) => {
   try {
+    // If Supabase not configured, return null (client will use localStorage fallback)
+    if (!supabase) {
+      return res.json({ sessionId: null, currentSlideId: 'bi-intro' });
+    }
+    
     const { presentationId } = req.body;
     
     // Get presentation ID if not provided

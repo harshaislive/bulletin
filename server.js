@@ -1,8 +1,21 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { createClient } = require('@supabase/supabase-js');
-const OpenAI = require('openai');
+const path = require('path');
+
+// Only import if variables are set
+let supabase = null;
+let openai = null;
+
+if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+  const { createClient } = require('@supabase/supabase-js');
+  supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+}
+
+if (process.env.OPENAI_API_KEY) {
+  const { OpenAI } = require('openai');
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,17 +23,19 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('ppt-bulletin-v2'));
 
-// Initialize Supabase
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+// Serve ppt-bulletin-v2 files
+app.use(express.static(path.join(__dirname, 'ppt-bulletin-v2')));
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+// Serve Team Image Library
+app.use('/images', express.static(path.join(__dirname, 'Team Image Library')));
+
+// Serve fonts
+app.use('/fonts', express.static(path.join(__dirname, 'fonts')));
+
+// Serve index.html as root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'ppt-bulletin-v2', 'orchestrator.html'));
 });
 
 // Slides data (embedded for AI context)

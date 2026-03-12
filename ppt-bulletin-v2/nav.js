@@ -207,17 +207,7 @@
   nav.innerHTML = leftSection + rightSection;
   document.body.appendChild(nav);
 
-  // Add AI controls
-  const aiControls = document.createElement('div');
-  aiControls.className = 'ai-controls';
-  aiControls.innerHTML = `
-    <button class="ai-btn chat-toggle" id="ai-chat-toggle" title="Chat with AI">💬 Chat</button>
-    <button class="ai-btn assist" id="ai-ask" title="Ask AI about this slide">Ask AI</button>
-    <button class="ai-btn present" id="ai-present" title="Let AI present">Present</button>
-  `;
-  document.body.appendChild(aiControls);
-
-  // Add AI status
+  // Add AI status only (no chat buttons)
   const aiStatus = document.createElement('div');
   aiStatus.className = 'ai-status';
   aiStatus.innerHTML = `
@@ -226,34 +216,10 @@
   `;
   document.body.appendChild(aiStatus);
 
-  // Load AI client script
-  const aiScript = document.createElement('script');
-  aiScript.src = './ai/ai-client.js';
-  document.body.appendChild(aiScript);
-
-  // Chat toggle handler
-  document.getElementById('ai-chat-toggle')?.addEventListener('click', () => {
-    if (typeof toggleChat === 'function') {
-      toggleChat();
-    }
-  });
-  
-  // Assist mode - just opens chat
-  document.getElementById('ai-ask')?.addEventListener('click', () => {
-    document.body.classList.remove('presenter-mode');
-    if (typeof toggleChat === 'function') {
-      toggleChat();
-    }
-  });
-  
-  // Presenter mode - opens chat and sets presenter mode
-  document.getElementById('ai-present')?.addEventListener('click', () => {
-    document.body.classList.add('presenter-mode');
-    document.getElementById('ai-status-text').textContent = 'Presenter Mode';
-    if (typeof toggleChat === 'function') {
-      toggleChat();
-    }
-  });
+  // Load AI client script (optional - for future use)
+  // const aiScript = document.createElement('script');
+  // aiScript.src = './ai/ai-client.js';
+  // document.body.appendChild(aiScript);
 
   // Keyboard navigation
   document.addEventListener('keydown', (e) => {

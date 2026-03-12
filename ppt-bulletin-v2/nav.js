@@ -234,6 +234,6 @@
 
   // Load AI Presenter
   const presenterScript = document.createElement('script');
-  presenterScript.src = './ai-presenter.js';
+  presenterScript.src = '/ai-presenter.js';
   document.body.appendChild(presenterScript);
 })();

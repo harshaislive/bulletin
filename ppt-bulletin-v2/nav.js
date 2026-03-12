@@ -4,6 +4,11 @@
 (function() {
   if (window._navLoaded) return;
   window._navLoaded = true;
+
+  const params = new URLSearchParams(window.location.search);
+  if (window.self !== window.top || params.get('embed') === '1') {
+    return;
+  }
   
   // Extract team name from URL path
   const pathParts = window.location.pathname.split('/').filter(Boolean);

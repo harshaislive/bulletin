@@ -264,7 +264,7 @@ app.post('/api/create-session', async (req, res) => {
 // AI Presentation endpoint - generates script for a slide
 app.post('/api/ai-present', async (req, res) => {
   try {
-    const { slideId, action } = req.body;
+    const { slideId, action, contextText } = req.body;
     const currentSlide = getSlideById(slideId);
     
     if (!currentSlide) {
@@ -288,16 +288,19 @@ app.post('/api/ai-present', async (req, res) => {
     let script = '';
     
     if (openai) {
-      const systemPrompt = `You are a professional presenter for Beforest, an ecological organization. 
-Generate a 2-3 sentence presentation script for the current slide.
+      const systemPrompt = `You are a professional presenter for Beforest, an ecological organization.
+Generate a concise 2-3 sentence presentation script for the current slide.
 - Keep it conversational and natural
-- Highlight key points from the title and tags
-- End with what comes next or wrap up
+- Use the actual slide copy when available
+- Highlight the strongest proof point or implication
+- Avoid repeating labels like activity, output, outcome, impact
+- End with a soft transition to what comes next or a wrap-up
 
 Current slide:
 - Team: ${currentSlide.team}
 - Title: ${currentSlide.title}
-- Tags: ${currentSlide.tags.join(', ')}`;
+- Tags: ${currentSlide.tags.join(', ')}
+- Slide copy: ${contextText || 'Not provided'}`;
 
       const response = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
@@ -312,7 +315,7 @@ Current slide:
       script = response.choices[0]?.message?.content || '';
     } else {
       // Fallback script without AI
-      script = generateFallbackScript(currentSlide);
+      script = generateFallbackScript(currentSlide, contextText);
     }
 
     res.json({
@@ -327,7 +330,15 @@ Current slide:
   }
 });
 
-function generateFallbackScript(slide) {
+function generateFallbackScript(slide, contextText) {
+  if (contextText) {
+    const cleaned = contextText.replace(/\s+/g, ' ').trim();
+    const sentences = cleaned.split(/(?<=[.!?])\s+/).slice(0, 2).join(' ');
+    if (sentences) {
+      return sentences;
+    }
+  }
+
   const team = slide.team.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   
   const scripts = {

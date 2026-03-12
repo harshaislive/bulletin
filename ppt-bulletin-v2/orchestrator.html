@@ -40,6 +40,37 @@
         color: var(--ink);
       }
 
+      .orch-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        flex-wrap: wrap;
+      }
+
+      .orch-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        border: 1px solid var(--line);
+      }
+
+      .orch-action.primary {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: var(--page);
+      }
+
+      .orch-action.secondary {
+        background: var(--panel);
+        color: var(--ink);
+      }
+
       .flow-section {
         margin-bottom: 64px;
         padding: 32px 40px;
@@ -203,6 +234,10 @@
           Monthly presentation deck for team updates, milestones, and impact stories.
           Select a team below to explore their slides.
         </p>
+        <div class="orch-actions">
+          <a class="orch-action primary" href="player.html?slide=bi-intro">Launch Stable Player</a>
+          <a class="orch-action secondary" href="index.html">Manual Team Browser</a>
+        </div>
       </header>
 
       <section class="flow-section">

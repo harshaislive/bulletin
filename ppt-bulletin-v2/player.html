@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beforest Bulletin Player</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      html, body {
+        overflow: hidden;
+      }
+
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(193, 127, 89, 0.16), transparent 28%),
+          linear-gradient(180deg, #fafaf8 0%, #f3eee7 100%);
+      }
+
+      .player-shell {
+        height: 100dvh;
+        display: grid;
+        grid-template-columns: 340px 1fr;
+      }
+
+      .player-panel {
+        padding: 32px 28px;
+        border-right: 1px solid var(--line);
+        background: rgba(250, 250, 248, 0.84);
+        backdrop-filter: blur(18px);
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 28px;
+      }
+
+      .player-kicker {
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--terracotta);
+      }
+
+      .player-title {
+        margin-top: 10px;
+        font-family: var(--display);
+        font-size: 44px;
+        line-height: 0.94;
+        letter-spacing: -0.03em;
+      }
+
+      .player-intro {
+        font-size: 14px;
+        line-height: 1.65;
+        color: var(--muted);
+        max-width: 30ch;
+      }
+
+      .player-meta {
+        display: grid;
+        gap: 16px;
+      }
+
+      .meta-row {
+        display: grid;
+        gap: 4px;
+      }
+
+      .meta-label {
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .meta-value {
+        font-size: 15px;
+        line-height: 1.4;
+        color: var(--ink);
+      }
+
+      .progress-rail {
+        width: 100%;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(13, 38, 32, 0.08);
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        width: 0;
+        height: 100%;
+        background: linear-gradient(90deg, var(--terracotta), var(--primary-green));
+      }
+
+      .player-notes {
+        align-self: end;
+        padding: 18px 18px 20px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: rgba(245, 240, 233, 0.9);
+      }
+
+      .player-notes p {
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+
+      .player-stage {
+        min-width: 0;
+        padding: 24px;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        gap: 18px;
+      }
+
+      .player-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .toolbar-left,
+      .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .player-btn {
+        border: 1px solid rgba(13, 38, 32, 0.12);
+        background: rgba(250, 250, 248, 0.95);
+        color: var(--ink);
+        padding: 12px 16px;
+        border-radius: 999px;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .player-btn:hover {
+        border-color: var(--terracotta);
+      }
+
+      .player-btn.primary {
+        background: var(--ink);
+        color: var(--page);
+        border-color: var(--ink);
+      }
+
+      .player-btn.primary:hover {
+        background: var(--primary-green);
+        border-color: var(--primary-green);
+      }
+
+      .player-btn.accent {
+        background: var(--terracotta);
+        color: var(--page);
+        border-color: var(--terracotta);
+      }
+
+      .player-status {
+        font-size: 12px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+      }
+
+      .player-frame-wrap {
+        position: relative;
+        min-height: 0;
+        border-radius: 28px;
+        overflow: hidden;
+        background: rgba(13, 38, 32, 0.06);
+        box-shadow: 0 30px 80px rgba(13, 38, 32, 0.14);
+      }
+
+      .player-frame {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: var(--page);
+      }
+
+      @media (max-width: 1100px) {
+        .player-shell {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto 1fr;
+        }
+
+        .player-panel {
+          grid-template-rows: auto auto auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+      }
+
+      @media (max-width: 720px) {
+        .player-panel,
+        .player-stage {
+          padding: 18px;
+        }
+
+        .player-title {
+          font-size: 34px;
+        }
+
+        .player-toolbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="player-shell">
+      <aside class="player-panel">
+        <section>
+          <div class="player-kicker">Beforest bulletin player</div>
+          <h1 class="player-title">One shell. Stable voice. Clean control.</h1>
+          <p class="player-intro">This player keeps the presentation chrome outside the slides so narration, pause, resume, and auto-advance stay intact.</p>
+        </section>
+
+        <section class="player-meta">
+          <div class="meta-row">
+            <div class="meta-label">Current team</div>
+            <div class="meta-value" id="meta-team">-</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Current slide</div>
+            <div class="meta-value" id="meta-title">-</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Progress</div>
+            <div class="meta-value" id="meta-progress">-</div>
+            <div class="progress-rail"><div class="progress-fill" id="progress-fill"></div></div>
+          </div>
+        </section>
+
+        <section class="player-notes">
+          <p id="player-script-preview">Load a slide to begin. AI mode uses the actual slide copy for narration when available, and falls back gracefully if OpenAI is unavailable.</p>
+        </section>
+      </aside>
+
+      <section class="player-stage">
+        <header class="player-toolbar">
+          <div class="toolbar-left">
+            <a class="player-btn" href="orchestrator.html">Orchestrator</a>
+            <button class="player-btn" id="btn-prev" type="button">Prev</button>
+            <button class="player-btn" id="btn-next" type="button">Next</button>
+            <button class="player-btn" id="btn-restart" type="button">From Start</button>
+          </div>
+
+          <div class="toolbar-right">
+            <div class="player-status" id="player-status">Manual</div>
+            <button class="player-btn primary" id="btn-present" type="button">Present</button>
+          </div>
+        </header>
+
+        <div class="player-frame-wrap">
+          <iframe class="player-frame" id="slide-frame" title="Beforest slide player"></iframe>
+        </div>
+      </section>
+    </main>
+
+    <script src="slides-manifest.js"></script>
+    <script src="player.js"></script>
+  </body>
+</html>

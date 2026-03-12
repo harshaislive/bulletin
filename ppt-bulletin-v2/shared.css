@@ -390,6 +390,27 @@ body {
   color: var(--ink);
 }
 
+.player-launch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--page);
+  text-decoration: none;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.player-launch:hover {
+  background: var(--primary-green);
+  border-color: var(--primary-green);
+}
+
 .slide-links {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

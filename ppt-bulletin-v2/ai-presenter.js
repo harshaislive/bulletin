@@ -46,6 +46,32 @@
     .present-btn.stop:hover {
       background: #b91c1c;
     }
+    .present-btn.paused {
+      background: #0d2620;
+    }
+    .present-btn.paused:hover {
+      background: #1f4b3f;
+    }
+    .present-controls {
+      position: fixed;
+      bottom: 20px;
+      right: 140px;
+      display: flex;
+      gap: 8px;
+      z-index: 1000;
+    }
+    .present-controls button {
+      background: #f5f0e9;
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: system-ui, sans-serif;
+    }
+    .present-controls button:hover {
+      border-color: #c17f59;
+    }
     .present-status {
       position: fixed;
       top: 20px;
@@ -100,25 +126,41 @@
     btn.onclick = togglePresentation;
     document.body.appendChild(btn);
 
+    const controls = document.createElement('div');
+    controls.className = 'present-controls';
+    controls.id = 'present-controls';
+    controls.innerHTML = `
+      <button id="start-from-begin">Start from Begin</button>
+    `;
+    document.body.appendChild(controls);
+
+    document.getElementById('start-from-begin').onclick = startFromBeginning;
+
     const status = document.createElement('div');
     status.className = 'present-status';
     status.id = 'present-status';
     document.body.appendChild(status);
   }
 
-  function updateButtonState(presenting) {
+  async function startFromBeginning() {
+    stopPresentation();
+    isPresenting = true;
+    currentSlideId = 'bi-intro';
+    updateButtonState(true, false);
+    showStatus('Starting from beginning...');
+    await navigateToSlide('bi-intro');
+    await sleep(2000);
+    await presentSlide('bi-intro', 'start');
+  }
+
+  let isPaused = false;
+
+  function updateButtonState(presenting, paused = false) {
     const btn = document.getElementById('ai-present-btn');
+    if (!btn) return;
+    
     const span = btn.querySelector('span');
-    if (presenting) {
-      btn.classList.add('stop');
-      span.textContent = 'Stop';
-      btn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="6" width="12" height="12"/>
-        </svg>
-        <span>Stop</span>
-      `;
-    } else {
+    if (!presenting) {
       btn.classList.remove('stop');
       span.textContent = 'Present';
       btn.innerHTML = `
@@ -126,6 +168,27 @@
           <path d="M8 5v14l11-7z"/>
         </svg>
         <span>Present</span>
+      `;
+    } else if (paused) {
+      btn.classList.remove('stop');
+      btn.classList.add('paused');
+      span.textContent = 'Resume';
+      btn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        <span>Resume</span>
+      `;
+    } else {
+      btn.classList.add('stop');
+      btn.classList.remove('paused');
+      span.textContent = 'Pause';
+      btn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="4" width="4" height="16"/>
+          <rect x="14" y="4" width="4" height="16"/>
+        </svg>
+        <span>Pause</span>
       `;
     }
   }
@@ -143,10 +206,32 @@
 
   async function togglePresentation() {
     if (isPresenting) {
-      stopPresentation();
+      if (isPaused) {
+        resumePresentation();
+      } else {
+        pausePresentation();
+      }
     } else {
       startPresentation();
     }
+  }
+
+  function pausePresentation() {
+    isPaused = true;
+    if (utterance) {
+      speechSynthesis.pause();
+    }
+    updateButtonState(true, true);
+    showStatus('Paused - click Resume to continue');
+  }
+
+  function resumePresentation() {
+    isPaused = false;
+    if (utterance) {
+      speechSynthesis.resume();
+    }
+    updateButtonState(true, false);
+    showStatus('Resuming...');
   }
 
   async function startPresentation() {
@@ -159,7 +244,10 @@
       return;
     }
 
-    updateButtonState(true);
+    const controls = document.getElementById('present-controls');
+    if (controls) controls.style.display = 'none';
+
+    updateButtonState(true, false);
     showStatus('Starting presentation...');
 
     await presentSlide(currentSlideId, 'start');
@@ -167,16 +255,19 @@
 
   function stopPresentation() {
     isPresenting = false;
+    isPaused = false;
     if (utterance) {
       speechSynthesis.cancel();
       utterance = null;
     }
     updateButtonState(false);
     hideStatus();
+    const controls = document.getElementById('present-controls');
+    if (controls) controls.style.display = 'flex';
   }
 
   async function presentSlide(slideId, action) {
-    if (!isPresenting) return;
+    if (!isPresenting || isPaused) return;
 
     try {
       const res = await fetch(`${API_BASE}/api/ai-present`, {
@@ -407,4 +498,15 @@
   // Initialize
   createPresentButton();
   initSession();
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && isPresenting) {
+      e.preventDefault();
+      togglePresentation();
+    }
+    if (e.key === 'Escape' && isPresenting) {
+      stopPresentation();
+    }
+  });
 })();

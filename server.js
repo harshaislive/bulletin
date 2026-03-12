@@ -261,6 +261,40 @@ app.post('/api/create-session', async (req, res) => {
   }
 });
 
+app.post('/api/realtime/session', async (req, res) => {
+  try {
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(400).json({ error: 'OPENAI_API_KEY is missing' });
+    }
+
+    const { voice, instructions } = req.body || {};
+    const response = await fetch('https://api.openai.com/v1/realtime/sessions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+        'OpenAI-Beta': 'realtime=v1'
+      },
+      body: JSON.stringify({
+        model: 'gpt-realtime-mini',
+        voice: voice || 'alloy',
+        modalities: ['audio', 'text'],
+        instructions: instructions || 'You are presenting the Beforest bulletin. Speak in a calm, concise, premium editorial tone.'
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data.error?.message || 'Failed to create realtime session' });
+    }
+
+    res.json({ session: data });
+  } catch (err) {
+    console.error('Realtime session error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // AI Presentation endpoint - generates script for a slide
 app.post('/api/ai-present', async (req, res) => {
   try {

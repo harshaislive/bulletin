@@ -1,5 +1,5 @@
 // Slide Navigation Module
-// Includes localStorage persistence and AI integration support
+// Includes localStorage persistence and AI integration
 
 (function() {
   if (window._navLoaded) return;
@@ -117,6 +117,11 @@
       color: white;
       border-color: var(--terracotta, #c17f59);
     }
+    .ai-btn.chat-toggle {
+      background: var(--ink, #0d2620);
+      color: white;
+      border-color: var(--ink, #0d2620);
+    }
     
     /* AI Status */
     .ai-status {
@@ -206,6 +211,7 @@
   const aiControls = document.createElement('div');
   aiControls.className = 'ai-controls';
   aiControls.innerHTML = `
+    <button class="ai-btn chat-toggle" id="ai-chat-toggle" title="Chat with AI">💬 Chat</button>
     <button class="ai-btn assist" id="ai-ask" title="Ask AI about this slide">Ask AI</button>
     <button class="ai-btn present" id="ai-present" title="Let AI present">Present</button>
   `;
@@ -220,13 +226,33 @@
   `;
   document.body.appendChild(aiStatus);
 
-  // AI button handlers (placeholder - will be implemented with OpenAI)
-  document.getElementById('ai-ask')?.addEventListener('click', () => {
-    alert('AI Assist mode coming soon! This will allow you to ask questions about the current slide.');
+  // Load AI client script
+  const aiScript = document.createElement('script');
+  aiScript.src = './ai/ai-client.js';
+  document.body.appendChild(aiScript);
+
+  // Chat toggle handler
+  document.getElementById('ai-chat-toggle')?.addEventListener('click', () => {
+    if (typeof toggleChat === 'function') {
+      toggleChat();
+    }
   });
   
+  // Assist mode - just opens chat
+  document.getElementById('ai-ask')?.addEventListener('click', () => {
+    document.body.classList.remove('presenter-mode');
+    if (typeof toggleChat === 'function') {
+      toggleChat();
+    }
+  });
+  
+  // Presenter mode - opens chat and sets presenter mode
   document.getElementById('ai-present')?.addEventListener('click', () => {
-    alert('Presenter mode coming soon! This will let AI present the slides with voice.');
+    document.body.classList.add('presenter-mode');
+    document.getElementById('ai-status-text').textContent = 'Presenter Mode';
+    if (typeof toggleChat === 'function') {
+      toggleChat();
+    }
   });
 
   // Keyboard navigation

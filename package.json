@@ -1,0 +1,6 @@
+# Dependencies
+express
+@supabase/supabase-js
+openai
+dotenv
+cors

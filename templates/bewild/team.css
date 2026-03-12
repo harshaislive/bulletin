@@ -1,0 +1,26 @@
+@import url("../team-deck.css");
+
+:root {
+  --page: #faf8f4;
+  --panel: #ece3d6;
+}
+
+.commerce-grid {
+  display: grid;
+  grid-template-columns: 1.12fr 0.88fr;
+  gap: 18px;
+  height: calc(100dvh - 176px);
+}
+
+.commerce-side {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  gap: 18px;
+}
+
+@media (max-width: 960px) {
+  .commerce-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}

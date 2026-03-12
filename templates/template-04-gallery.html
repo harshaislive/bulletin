@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beforest Template 04 - Gallery</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .slide {
+        background: #fafaf8;
+      }
+
+      .layout {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 0.88fr 1.12fr;
+        gap: 34px;
+        height: 100%;
+      }
+
+      .left {
+        display: grid;
+        align-content: space-between;
+      }
+
+      .left-copy {
+        display: grid;
+        gap: 22px;
+      }
+
+      .headline {
+        max-width: 8ch;
+      }
+
+      .note-box {
+        padding: 18px 0 0;
+        border-top: 1px solid rgba(31, 75, 63, 0.14);
+        max-width: 30ch;
+      }
+
+      .right {
+        position: relative;
+      }
+
+      .card-large,
+      .card-small,
+      .card-tall {
+        position: absolute;
+        overflow: hidden;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .card-large {
+        top: 10px;
+        left: 0;
+        width: 54%;
+        height: 64%;
+        background: #0d2620;
+      }
+
+      .card-small {
+        top: 0;
+        right: 0;
+        width: 38%;
+        height: 34%;
+        background: #c17f59;
+      }
+
+      .card-tall {
+        right: 4%;
+        bottom: 0;
+        width: 44%;
+        height: 56%;
+        background: #f5f0e9;
+        border: 1px solid rgba(31, 75, 63, 0.08);
+      }
+
+      .frame-copy {
+        position: absolute;
+        left: 28px;
+        bottom: 26px;
+        max-width: 14ch;
+        color: #fafaf8;
+        font-family: var(--display);
+        font-size: 36px;
+        line-height: 1.02;
+      }
+
+      .mini-copy {
+        position: absolute;
+        inset: auto 24px 22px 24px;
+        color: var(--forest-green);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .badge {
+        position: absolute;
+        left: 24px;
+        top: 24px;
+        width: 72px;
+        height: 72px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: #fafaf8;
+        color: var(--forest-green);
+        font-family: var(--display);
+        font-size: 28px;
+      }
+
+      @media (max-width: 960px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .right {
+          min-height: 520px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="slide">
+      <div class="texture"></div>
+      <section class="layout">
+        <div class="left">
+          <div class="left-copy">
+            <p class="eyebrow">Beforest / style four</p>
+            <h1 class="headline">For image-led storytelling without clutter.</h1>
+            <p class="subhead">
+              A layered composition for land, architecture, community, or material mood boards.
+            </p>
+          </div>
+
+          <div class="note-box">
+            <p class="caption">Best for: portfolio moments, location reveals, visual storytelling.</p>
+            <p class="folio">04</p>
+          </div>
+        </div>
+
+        <div class="right">
+          <div class="card-large">
+            <div class="frame"></div>
+            <div class="frame-copy">Replace with bold photography later.</div>
+          </div>
+          <div class="card-small"></div>
+          <div class="card-tall">
+            <div class="badge">B</div>
+            <p class="mini-copy">
+              Typography can sit against cropped imagery, but the frame should still feel quiet and deliberate.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

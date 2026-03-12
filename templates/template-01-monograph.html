@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beforest Template 01 - Monograph</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .slide {
+        background: #fafaf8;
+      }
+
+      .orb-one {
+        top: 82px;
+        right: 72px;
+        width: 140px;
+        height: 140px;
+        background: rgba(163, 181, 174, 0.18);
+      }
+
+      .orb-two {
+        bottom: 72px;
+        left: 72px;
+        width: 96px;
+        height: 96px;
+        background: rgba(193, 127, 89, 0.12);
+      }
+
+      .layout {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        height: 100%;
+        grid-template-columns: 1.2fr 0.8fr;
+        align-items: stretch;
+      }
+
+      .left {
+        display: grid;
+        align-content: space-between;
+        gap: 36px;
+        height: 100%;
+      }
+
+      .intro {
+        display: grid;
+        gap: 18px;
+        align-self: start;
+      }
+
+      .subhead {
+        max-width: 26ch;
+      }
+
+      .right {
+        display: grid;
+        align-content: center;
+        justify-items: end;
+        gap: 16px;
+      }
+
+      .panel {
+        right: 72px;
+        top: 72px;
+        width: 1px;
+        height: calc(100% - 144px);
+        background: rgba(31, 75, 63, 0.14);
+        border: 0;
+        border-radius: 0;
+      }
+
+      .quote {
+        max-width: 11ch;
+        font-size: clamp(28px, 2.4vw, 42px);
+      }
+
+      .caption-stack {
+        display: grid;
+        gap: 10px;
+        width: 280px;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+      }
+
+      @media (max-width: 960px) {
+        .layout {
+          grid-template-columns: 1fr;
+          gap: 48px;
+        }
+
+        .panel,
+        .orb-two,
+        .orb-one {
+          display: none;
+        }
+
+        .right {
+          justify-items: start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="slide">
+      <div class="texture"></div>
+      <div class="orb orb-one"></div>
+      <div class="orb orb-two"></div>
+      <div class="panel"></div>
+
+      <section class="layout">
+        <div class="left">
+          <div class="intro">
+            <p class="eyebrow">Beforest / editorial direction one</p>
+            <h1 class="headline">Quiet growth, clearly framed.</h1>
+            <p class="subhead">
+              A restrained opening composition for decks that should feel authored,
+              calm, and certain.
+            </p>
+          </div>
+
+          <div class="footer">
+            <div>
+              <div class="rule"></div>
+              <p class="meta" style="margin-top: 14px">Brand-led presentation system</p>
+            </div>
+            <p class="folio">01</p>
+          </div>
+        </div>
+
+        <div class="right">
+          <p class="quote">Land feels less sold and more curated.</p>
+          <div class="caption-stack">
+            <p class="caption">Quiet vertical rule, restrained accent, no decorative chrome.</p>
+            <p class="caption">Best for: title slide, section opener, brand philosophy.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

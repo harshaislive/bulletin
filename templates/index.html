@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beforest Slide Directions</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      body {
+        display: block;
+        padding: 40px;
+        background: #fafaf8;
+      }
+
+      .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        gap: 28px;
+      }
+
+      .intro {
+        display: grid;
+        gap: 14px;
+        max-width: 780px;
+      }
+
+      .intro h1 {
+        margin: 0;
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: clamp(48px, 6vw, 88px);
+        line-height: 0.96;
+        color: var(--forest-green);
+      }
+
+      .intro p {
+        margin: 0;
+        max-width: 40ch;
+        font-size: 18px;
+        line-height: 1.5;
+        color: var(--deep-earth);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+      }
+
+      .card {
+        display: grid;
+        gap: 14px;
+        padding: 22px;
+        text-decoration: none;
+        background: #f5f0e9;
+        border: 1px solid rgba(31, 75, 63, 0.08);
+        border-radius: 0;
+        color: inherit;
+        box-shadow: none;
+      }
+
+      .swatch-row {
+        display: flex;
+        gap: 8px;
+      }
+
+      .swatch {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+      }
+
+      .card h2,
+      .card strong {
+        margin: 0;
+      }
+
+      .card h2 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 34px;
+        line-height: 1.02;
+        color: var(--forest-green);
+      }
+
+      .card p,
+      .card strong {
+        margin: 0;
+        line-height: 1.45;
+      }
+
+      .card strong {
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--terracotta);
+      }
+
+      .card p {
+        font-size: 15px;
+        color: var(--deep-earth);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="intro">
+        <p class="eyebrow">Beforest slide directions</p>
+        <h1>Five editorial directions for PPT-ready storytelling.</h1>
+        <p>Each template uses the bundled display font, the Beforest palette, and a quieter editorial rhythm.</p>
+      </section>
+
+      <section class="grid">
+        <a class="card" href="template-01-monograph.html">
+          <strong>Template 01</strong>
+          <h2>Monograph</h2>
+          <p>Quiet title-led opener with large whitespace and a premium editorial mood.</p>
+          <div class="swatch-row">
+            <span class="swatch" style="background:#fafaf8"></span>
+            <span class="swatch" style="background:#1f4b3f"></span>
+            <span class="swatch" style="background:#c17f59"></span>
+          </div>
+        </a>
+
+        <a class="card" href="template-02-split-editorial.html">
+          <strong>Template 02</strong>
+          <h2>Split Editorial</h2>
+          <p>Sharper narrative split with one mood pane and one argument pane.</p>
+          <div class="swatch-row">
+            <span class="swatch" style="background:#0d2620"></span>
+            <span class="swatch" style="background:#f5f0e9"></span>
+            <span class="swatch" style="background:#a3b5ae"></span>
+          </div>
+        </a>
+
+        <a class="card" href="template-03-quiet-stat.html">
+          <strong>Template 03</strong>
+          <h2>Quiet Stat</h2>
+          <p>Single hero number for impact, investor, or proof-point slides.</p>
+          <div class="swatch-row">
+            <span class="swatch" style="background:#0d2620"></span>
+            <span class="swatch" style="background:#fafaf8"></span>
+            <span class="swatch" style="background:#c17f59"></span>
+          </div>
+        </a>
+
+        <a class="card" href="template-04-gallery.html">
+          <strong>Template 04</strong>
+          <h2>Gallery</h2>
+          <p>Layered image-first composition for land, architecture, and mood reveals.</p>
+          <div class="swatch-row">
+            <span class="swatch" style="background:#0d2620"></span>
+            <span class="swatch" style="background:#e5d9cd"></span>
+            <span class="swatch" style="background:#f5f0e9"></span>
+          </div>
+        </a>
+
+        <a class="card" href="template-05-closing.html">
+          <strong>Template 05</strong>
+          <h2>Closing</h2>
+          <p>Confident final slide with restrained drama and minimal copy.</p>
+          <div class="swatch-row">
+            <span class="swatch" style="background:#0d2620"></span>
+            <span class="swatch" style="background:#1f4b3f"></span>
+            <span class="swatch" style="background:#c17f59"></span>
+          </div>
+        </a>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BI - Openclaw</title>
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      .openclaw-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .openclaw-card { 
+        background: var(--panel); 
+        padding: 28px; 
+        display: grid;
+        gap: 16px;
+        align-content: start;
+      }
+      .openclaw-card svg { width: 40px; height: 40px; }
+      .openclaw-card h3 { font-size: 18px; font-weight: 500; color: var(--ink); margin: 0; }
+      .openclaw-card p { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0; }
+    </style>
+  </head>
+  <body>
+    <main class="slide">
+      <div class="folio-top">
+        <div class="team-label">BI</div>
+        <div class="folio">02</div>
+      </div>
+      <section class="two-column">
+        <div class="copy-block">
+          <div class="copy-stack">
+            <p class="eyebrow">New: Openclaw</p>
+            <h2 class="headline">Our autonomous executive assistant.</h2>
+            <p class="subhead">All of us internally now have Openclaw — an autonomous agent that works 24X7 as our executive assistant. Endless possibilities, new experiments, more certainty, simulations, new landing pages — more coming up.</p>
+            <div class="proof"><small>The story</small><p>AI that works while we sleep.</p></div>
+          </div>
+        </div>
+        <div class="openclaw-grid">
+          <div class="openclaw-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#c17f59" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+            <h3>24/7 Working</h3>
+            <p>Autonomous agent runs continuously, handling tasks round the clock.</p>
+          </div>
+          <div class="openclaw-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#c17f59" stroke-width="1.5">
+              <path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+              <path d="M12 8v4l2 2"/>
+            </svg>
+            <h3>Experiments</h3>
+            <p>New experiments launched continuously.</p>
+          </div>
+          <div class="openclaw-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#c17f59" stroke-width="1.5">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+            <h3>More Certainty</h3>
+            <p>Data-driven decisions with higher confidence.</p>
+          </div>
+          <div class="openclaw-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#c17f59" stroke-width="1.5">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <path d="M8 21h8M12 17v4"/>
+            </svg>
+            <h3>Simulations</h3>
+            <p>Test scenarios before implementation.</p>
+          </div>
+          <div class="openclaw-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#c17f59" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+            </svg>
+            <h3>Landing Pages</h3>
+            <p>New pages generated on demand.</p>
+          </div>
+          <div class="openclaw-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#c17f59" stroke-width="1.5">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+            <h3>More Coming</h3>
+            <p>Endless possibilities ahead.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="../nav.js" data-prev="slide-01-cover.html" data-next="slide-03-schema.html" data-current="02" data-total="04"></script>
+  </body>
+</html>

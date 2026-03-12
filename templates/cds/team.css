@@ -1,0 +1,26 @@
+@import url("../team-deck.css");
+
+:root {
+  --page: #fafaf8;
+  --panel: #edf0ed;
+}
+
+.portrait-wide {
+  display: grid;
+  grid-template-columns: 0.78fr 1.22fr;
+  gap: 18px;
+  height: calc(100dvh - 176px);
+}
+
+.portrait-side {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  gap: 18px;
+}
+
+@media (max-width: 960px) {
+  .portrait-wide {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}

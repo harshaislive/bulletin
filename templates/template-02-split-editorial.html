@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beforest Template 02 - Split Editorial</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .slide {
+        background: #f5f0e9;
+      }
+
+      .layout {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        height: 100%;
+      }
+
+      .left-panel {
+        position: relative;
+        padding: 28px;
+        display: grid;
+        align-content: space-between;
+        background: #0d2620;
+        color: #fafaf8;
+        border-radius: 0;
+        overflow: hidden;
+      }
+
+      .left-panel .headline,
+      .left-panel .quote,
+      .left-panel .caption,
+      .left-panel .folio,
+      .left-panel .eyebrow {
+        color: #fafaf8;
+      }
+
+      .left-panel .eyebrow,
+      .left-panel .caption,
+      .left-panel .folio {
+        color: rgba(250, 250, 248, 0.72);
+      }
+
+      .left-panel .quote {
+        font-size: clamp(34px, 2.8vw, 48px);
+        max-width: 7ch;
+      }
+
+      .left-panel .orb {
+        background: rgba(163, 181, 174, 0.08);
+      }
+
+      .orb-a {
+        width: 120px;
+        height: 120px;
+        top: 24px;
+        right: 24px;
+      }
+
+      .orb-b {
+        width: 88px;
+        height: 88px;
+        bottom: 24px;
+        left: 24px;
+        background: rgba(193, 127, 89, 0.14);
+      }
+
+      .right-panel {
+        padding: 10px 0 10px 48px;
+        display: grid;
+        align-content: stretch;
+        grid-template-rows: auto auto auto 1fr;
+        gap: 18px;
+        min-height: 0;
+      }
+
+      .headline {
+        max-width: 9ch;
+      }
+
+      .body-copy {
+        max-width: 35ch;
+        font-size: 17px;
+        line-height: 1.45;
+        color: var(--deep-earth);
+      }
+
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        align-self: end;
+      }
+
+      .fact {
+        padding-top: 14px;
+        border-top: 1px solid rgba(31, 75, 63, 0.16);
+      }
+
+      .fact strong {
+        display: block;
+        margin-bottom: 6px;
+        font-family: var(--display);
+        font-size: 22px;
+        font-weight: 400;
+        color: var(--primary-green);
+      }
+
+      .fact span {
+        font-size: 12px;
+        line-height: 1.4;
+        color: rgba(89, 69, 54, 0.9);
+      }
+
+      @media (max-width: 960px) {
+        .layout,
+        .facts {
+          grid-template-columns: 1fr;
+        }
+
+        .right-panel {
+          padding: 28px 0 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="slide">
+      <div class="texture"></div>
+      <section class="layout">
+        <aside class="left-panel">
+          <div class="orb orb-a"></div>
+          <div class="orb orb-b"></div>
+
+          <p class="eyebrow">Beforest / style two</p>
+          <p class="quote">A sharper split for strategy-led storytelling.</p>
+          <div>
+            <p class="caption">Best for: market story, thesis, differentiation.</p>
+            <p class="folio">02</p>
+          </div>
+        </aside>
+
+        <div class="right-panel">
+          <p class="eyebrow">Editorial split layout</p>
+          <h1 class="headline">Natural value, stated with more control.</h1>
+          <p class="body-copy">
+            This direction balances warmth with authority. One side holds tone;
+            the other carries the argument with more restraint.
+          </p>
+          <div class="facts">
+            <div class="fact">
+              <strong>01</strong>
+              <span>Strong contrast between narrative block and evidence zone.</span>
+            </div>
+            <div class="fact">
+              <strong>02</strong>
+              <span>Works well when a slide needs one message plus a few proof cues.</span>
+            </div>
+            <div class="fact">
+              <strong>03</strong>
+              <span>Still lightweight enough for easy PPT translation later.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

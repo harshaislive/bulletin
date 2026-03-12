@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beforest Template 05 - Closing</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .slide {
+        background: #0d2620;
+        color: #fafaf8;
+      }
+
+      .texture {
+        opacity: 0.08;
+        background-image: linear-gradient(rgba(250, 250, 248, 0.18) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(250, 250, 248, 0.18) 1px, transparent 1px);
+      }
+
+      .layout {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        height: 100%;
+        align-content: space-between;
+      }
+
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+      }
+
+      .headline,
+      .subhead,
+      .quote,
+      .folio,
+      .meta,
+      .caption {
+        color: #fafaf8;
+      }
+
+      .headline {
+        max-width: 8ch;
+        font-size: clamp(54px, 5.6vw, 92px);
+      }
+
+      .subhead {
+        max-width: 28ch;
+        color: rgba(250, 250, 248, 0.84);
+      }
+
+      .center {
+        display: grid;
+        gap: 24px;
+        align-content: center;
+      }
+
+      .quote {
+        max-width: 16ch;
+        font-size: clamp(22px, 2vw, 30px);
+        line-height: 1.12;
+      }
+
+      .closing-line {
+        width: 220px;
+        height: 1px;
+        background: rgba(250, 250, 248, 0.22);
+      }
+
+      .bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+      }
+
+      .deck-note,
+      .folio,
+      .meta,
+      .caption {
+        color: rgba(250, 250, 248, 0.7);
+      }
+
+      .accent-block {
+        width: 170px;
+        height: 170px;
+        border-radius: 0;
+        background: #c17f59;
+      }
+
+      @media (max-width: 960px) {
+        .top,
+        .bottom {
+          display: grid;
+          gap: 18px;
+        }
+
+        .accent-block {
+          width: 120px;
+          height: 120px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="slide">
+      <div class="texture"></div>
+      <section class="layout">
+        <div class="top">
+          <p class="eyebrow">Beforest / style five</p>
+          <p class="folio">05</p>
+        </div>
+
+        <div class="center">
+          <h1 class="headline">Made to end with calm confidence.</h1>
+          <p class="subhead">
+            A closing slide that feels more like the final page of a monograph than a standard thank-you screen.
+          </p>
+          <div class="closing-line"></div>
+          <p class="quote">Less noise. More conviction. A cleaner finish for the deck.</p>
+        </div>
+
+        <div class="bottom">
+          <div>
+            <p class="deck-note">Best for: closing slide, contact slide, final statement.</p>
+            <p class="meta">Terracotta used as a controlled accent rather than a competing theme.</p>
+          </div>
+          <div class="accent-block"></div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

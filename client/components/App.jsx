@@ -27,6 +27,7 @@ export default function App() {
   const localAudioTrack = useRef(null);
   const aiStatusToastTimerRef = useRef(null);
   const lastAiToggleAtRef = useRef(0);
+  const hasActiveResponseRef = useRef(false);
   const maxSlide = getMaxSlideNumber();
 
   function showAiStatusToast(message) {
@@ -160,9 +161,12 @@ export default function App() {
       return;
     }
 
-    sendClientEvent({
-      type: "response.cancel",
-    });
+    if (hasActiveResponseRef.current) {
+      sendClientEvent({
+        type: "response.cancel",
+      });
+      hasActiveResponseRef.current = false;
+    }
     sendClientEvent({
       type: "output_audio_buffer.clear",
     });
@@ -248,6 +252,10 @@ export default function App() {
     });
   }, [currentSlide, interruptModelOutput, isSessionActive]);
 
+  const handleResumeAiHandled = useCallback(() => {
+    setResumeAiOnNextSlideFrom(null);
+  }, []);
+
   const handleSlideChange = useCallback((slideNumber) => {
     const nextSlide = Math.min(Math.max(slideNumber, 1), maxSlide);
     setCurrentSlide(nextSlide);
@@ -291,6 +299,14 @@ export default function App() {
         const event = JSON.parse(e.data);
         if (!event.timestamp) {
           event.timestamp = new Date().toLocaleTimeString();
+        }
+
+        if (event.type === "response.created") {
+          hasActiveResponseRef.current = true;
+        }
+
+        if (event.type === "response.done" || event.type === "error") {
+          hasActiveResponseRef.current = false;
         }
 
         setEvents((prev) => [event, ...prev]);
@@ -496,7 +512,7 @@ export default function App() {
             elapsedSeconds={elapsedSeconds}
             onInterruptNarration={interruptModelOutput}
             resumeAiOnNextSlideFrom={resumeAiOnNextSlideFrom}
-            onResumeAiHandled={() => setResumeAiOnNextSlideFrom(null)}
+            onResumeAiHandled={handleResumeAiHandled}
           />
         </section>
       </main>

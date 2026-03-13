@@ -21,7 +21,7 @@ const sessionConfig = JSON.stringify({
     model: "gpt-realtime-mini",
     audio: {
       output: {
-        voice: "marin",
+        voice: "coral",
       },
     },
   },

@@ -18,7 +18,7 @@ app.use(vite.middlewares);
 const sessionConfig = JSON.stringify({
   session: {
     type: "realtime",
-    model: "gpt-realtime",
+    model: "gpt-realtime-mini",
     audio: {
       output: {
         voice: "marin",

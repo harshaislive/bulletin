@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { CloudLightning, CloudOff, MessageSquare } from "react-feather";
+import {
+  CloudLightning,
+  CloudOff,
+  MessageSquare,
+  Mic,
+  MicOff,
+} from "react-feather";
 import Button from "./Button";
 
 function SessionStopped({ startSession }) {
@@ -25,7 +31,15 @@ function SessionStopped({ startSession }) {
   );
 }
 
-function SessionActive({ stopSession, sendTextMessage }) {
+function SessionActive({
+  stopSession,
+  sendTextMessage,
+  isPushToTalkActive,
+  onHoldToTalkStart,
+  onHoldToTalkEnd,
+  autoplayEnabled,
+  onToggleAutoplay,
+}) {
   const [message, setMessage] = useState("");
 
   function handleSendClientEvent() {
@@ -58,6 +72,23 @@ function SessionActive({ stopSession, sendTextMessage }) {
       >
         send text
       </Button>
+      <Button
+        onMouseDown={onHoldToTalkStart}
+        onMouseUp={onHoldToTalkEnd}
+        onMouseLeave={onHoldToTalkEnd}
+        onTouchStart={onHoldToTalkStart}
+        onTouchEnd={onHoldToTalkEnd}
+        className={isPushToTalkActive ? "bg-green-600" : "bg-emerald-500"}
+        icon={isPushToTalkActive ? <Mic height={16} /> : <MicOff height={16} />}
+      >
+        {isPushToTalkActive ? "listening..." : "hold to talk"}
+      </Button>
+      <Button
+        onClick={onToggleAutoplay}
+        className={autoplayEnabled ? "bg-amber-600" : "bg-gray-600"}
+      >
+        {autoplayEnabled ? "autoplay on" : "autoplay off"}
+      </Button>
       <Button onClick={stopSession} icon={<CloudOff height={16} />}>
         disconnect
       </Button>
@@ -68,19 +99,25 @@ function SessionActive({ stopSession, sendTextMessage }) {
 export default function SessionControls({
   startSession,
   stopSession,
-  sendClientEvent,
   sendTextMessage,
-  serverEvents,
   isSessionActive,
+  isPushToTalkActive,
+  onHoldToTalkStart,
+  onHoldToTalkEnd,
+  autoplayEnabled,
+  onToggleAutoplay,
 }) {
   return (
     <div className="flex gap-4 border-t-2 border-gray-200 h-full rounded-md">
       {isSessionActive ? (
         <SessionActive
           stopSession={stopSession}
-          sendClientEvent={sendClientEvent}
           sendTextMessage={sendTextMessage}
-          serverEvents={serverEvents}
+          isPushToTalkActive={isPushToTalkActive}
+          onHoldToTalkStart={onHoldToTalkStart}
+          onHoldToTalkEnd={onHoldToTalkEnd}
+          autoplayEnabled={autoplayEnabled}
+          onToggleAutoplay={onToggleAutoplay}
         />
       ) : (
         <SessionStopped startSession={startSession} />

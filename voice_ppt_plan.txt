@@ -1,0 +1,140 @@
+This is 100% doable in the browser with **zero extra cost beyond API usage** (the mini realtime model is very cheap). The OpenAI Realtime API handles low-latency voice, automatic interruptions, and **client-side tool calling** — exactly what we need for “AI reads MD → narrates → advances slide”.
+
+Here’s the complete, practical way to build it (takes ~2-4 hours if you follow the steps).
+
+### 1. Start with the Official OpenAI Realtime Console (Best Base)
+Clone this repo — it’s literally made for exactly this kind of custom voice + UI control project:
+
+```bash
+git clone https://github.com/openai/openai-realtime-console.git
+cd openai-realtime-console
+cp .env.example .env
+# Add your OpenAI API key in .env
+npm install
+npm run dev
+```
+
+Open http://localhost:3000 → you already have working voice + realtime model + **client-side tool calling** in the browser.
+
+This uses WebRTC + the exact model you want: **`gpt-4o-mini-realtime-preview`**.
+
+### 2. Add Your Slides & Markdown Context
+Two options (choose one):
+
+**Option A (Recommended) – Use Reveal.js** (most HTML slide decks already are this)
+- Put your existing presentation folder in `/public/presentation/` (or just your `index.html`).
+- In the React app, add an `<iframe>` or embed Reveal.js directly.
+- Reveal.js has a perfect JS API: `Reveal.next()`, `Reveal.slide(3)`, `Reveal.getCurrentSlide()` etc.
+
+**Option B** – If your slides are custom HTML sections, just make a React component that shows/hides `<div class="slide">` blocks.
+
+Store the Markdown context (your “deep context” files) in one JS file (easiest for browser):
+
+```js
+// src/slideContexts.js
+export const slideContexts = {
+  1: `# Slide 1: Title\n\nFull script here... (everything you want the AI to know)`,
+  2: `# Slide 2: Problem\n\nDeep details...`,
+  // ... paste all your .md files here
+};
+```
+
+### 3. Define the Tools (This is the Magic)
+In the console’s client code (around where `session.update` happens), add these tools:
+
+```js
+const tools = [
+  {
+    type: "function",
+    name: "get_slide_context",
+    description: "Get the full markdown script and context for a specific slide",
+    parameters: {
+      type: "object",
+      properties: {
+        slide_number: { type: "number", description: "Slide number (1-based)" }
+      },
+      required: ["slide_number"]
+    }
+  },
+  {
+    type: "function",
+    name: "advance_to_slide",
+    description: "Advance the presentation to the next slide (or specific number)",
+    parameters: {
+      type: "object",
+      properties: {
+        slide_number: { type: "number", description: "Target slide number" }
+      },
+      required: ["slide_number"]
+    }
+  }
+];
+```
+
+Then in the session update:
+
+```js
+session.update({
+  instructions: `You are an engaging professional presenter using GPT-4o-mini-realtime.
+You have access to full markdown scripts for each slide (the HTML slides only show visuals).
+Rules:
+- Always start at slide 1.
+- Call get_slide_context(slide_number) BEFORE speaking about a slide.
+- Narrate naturally and conversationally — never read verbatim, make it exciting.
+- After you finish explaining a slide, call advance_to_slide(next number).
+- If the user says "stop", "pause", "I take over", or interrupts, immediately acknowledge and stop advancing.`,
+  tools: tools,
+  tool_choice: "auto"
+});
+```
+
+### 4. Handle the Tool Calls (Client-Side)
+The console already shows you how to listen for tool calls. Just add:
+
+```js
+// When model calls a tool
+if (event.type === "conversation.item.created" && event.item.type === "function_call") {
+  const { name, arguments, call_id } = event.item;
+
+  if (name === "get_slide_context") {
+    const { slide_number } = JSON.parse(arguments);
+    const context = slideContexts[slide_number] || "No context available";
+    
+    // Send result back to model
+    client.sendToolOutput(call_id, context);
+  }
+
+  if (name === "advance_to_slide") {
+    const { slide_number } = JSON.parse(arguments);
+    // Actual slide control
+    if (window.Reveal) {
+      Reveal.slide(slide_number - 1); // Reveal is 0-based
+    } else if (iframe) {
+      iframe.contentWindow.postMessage({ type: "goToSlide", number: slide_number }, "*");
+    }
+    
+    client.sendToolOutput(call_id, `Advanced to slide ${slide_number}`);
+  }
+}
+```
+
+### 5. Stop / Take Over Features (Built-In + Extra Buttons)
+- **Voice interrupt** → already perfect. Just speak “stop”, “pause”, or “I take over” and the model stops immediately (Realtime API is designed for this).
+- Add two big buttons in the UI:
+  - **Pause AI** → calls `client.interrupt()` + temporarily updates instructions to “User has taken control. Stay silent until told to resume.”
+  - **Resume AI** → reconnects session or sends “resume presenting from current slide”.
+
+You can even add a “Manual Mode” toggle that hides the AI voice but keeps the slide viewer.
+
+### 6. Final Polish (Optional but Awesome)
+- Full-screen presentation mode (hide console UI when presenting).
+- Progress bar showing current slide.
+- Voice visualization (the console already has it).
+- Add a “Next” / “Previous” manual button that also updates the AI’s internal state.
+
+### Ready-to-Go Timeline
+1. Today: Clone console + add your iframe/Reveal + paste markdowns (30 min)
+2. Tomorrow: Add the 2 tools + handlers (1 hour)
+3. Test: Run it → AI starts presenting automatically and advances slides
+
+You now have a fully AI-narrated presentation where the model has perfect context from your Markdown files, controls the HTML slides, and you can interrupt/take over instantly.

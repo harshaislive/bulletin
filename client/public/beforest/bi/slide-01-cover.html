@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BI - Cover</title>
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      .icon-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+      .icon-card { 
+        background: var(--panel); 
+        padding: 24px; 
+        text-align: center;
+        display: grid;
+        gap: 12px;
+        align-content: center;
+      }
+      .icon-card svg { width: 48px; height: 48px; margin: 0 auto; }
+      .icon-card span { font-size: 13px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <main class="slide">
+      <div class="folio-top">
+        <div class="team-label">BI</div>
+        <div class="folio">01</div>
+      </div>
+      <section class="cover-grid">
+        <div class="copy-block">
+          <div class="copy-stack">
+            <p class="eyebrow">Automation</p>
+            <h2 class="headline">4 workflows. AI routing. Calendar integration.</h2>
+            <p class="subhead">Lead qualification, webinar registration, call capture, and reschedule handling automated across AI, Calendly, Zoom, Pipedrive, and WhatsApp.</p>
+            <div class="proof"><small>The story</small><p>Quiet systems that make growth feel orderly.</p></div>
+          </div>
+        </div>
+        <div class="icon-grid">
+          <div class="icon-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1F4B3F" stroke-width="1.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <span>Workflows</span>
+          </div>
+          <div class="icon-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1F4B3F" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+            </svg>
+            <span>Automation</span>
+          </div>
+          <div class="icon-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1F4B3F" stroke-width="1.5">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            <span>Calendar</span>
+          </div>
+          <div class="icon-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1F4B3F" stroke-width="1.5">
+              <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+            </svg>
+            <span>Integration</span>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="../nav.js" data-prev="slide-00-intro.html" data-next="slide-02-openclaw.html" data-current="01" data-total="04"></script>
+  </body>
+</html>

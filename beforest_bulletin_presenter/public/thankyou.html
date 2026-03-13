@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thank You — Beforest Bulletin</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      html, body {
+        height: auto;
+        overflow-y: auto;
+      }
+      .thankyou {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--page);
+        text-align: center;
+        padding: 48px;
+      }
+      .thankyou-content {
+        max-width: 480px;
+      }
+      .thankyou-eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 16px;
+      }
+      .thankyou-title {
+        font-family: var(--display);
+        font-size: 56px;
+        font-weight: 400;
+        color: var(--ink);
+        margin-bottom: 16px;
+        letter-spacing: -0.02em;
+      }
+      .thankyou-subtitle {
+        font-size: 18px;
+        color: var(--muted);
+        margin-bottom: 40px;
+      }
+      .thankyou-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+      }
+      .thankyou-actions a {
+        font-size: 14px;
+        padding: 12px 24px;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        font-family: system-ui, sans-serif;
+      }
+      .thankyou-actions .primary {
+        background: var(--ink);
+        color: var(--page);
+      }
+      .thankyou-actions .primary:hover {
+        background: var(--primary-green);
+      }
+      .thankyou-actions .secondary {
+        background: transparent;
+        color: var(--ink);
+        border: 1px solid var(--line);
+      }
+      .thankyou-actions .secondary:hover {
+        border-color: var(--terracotta);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="thankyou">
+      <div class="thankyou-content">
+        <p class="thankyou-eyebrow">End of Presentation</p>
+        <h1 class="thankyou-title">Thank You</h1>
+        <p class="thankyou-subtitle">Questions, feedback, or just to say hello.</p>
+        <div class="thankyou-actions">
+          <a href="orchestrator.html" class="primary">Back to Orchestrator</a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

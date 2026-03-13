@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presentation Deck</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+
+      .deck {
+        height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        box-sizing: border-box;
+      }
+
+      .slide {
+        display: none;
+        width: min(960px, 100%);
+        min-height: 540px;
+        padding: 48px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #111827, #1d4ed8);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      }
+
+      .slide.active {
+        display: block;
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: 3rem;
+      }
+
+      p,
+      li {
+        font-size: 1.25rem;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="deck">
+      <section class="slide active" data-slide="1">
+        <h1>Slide 1</h1>
+        <p>Replace this sample deck with your exported HTML presentation.</p>
+      </section>
+      <section class="slide" data-slide="2">
+        <h1>Slide 2</h1>
+        <p>The React app can drive this deck by sending a postMessage.</p>
+      </section>
+      <section class="slide" data-slide="3">
+        <h1>Slide 3</h1>
+        <ul>
+          <li>Put assets next to the deck under <code>client/public/slides/</code>.</li>
+          <li>Keep relative paths intact when copying an existing HTML PPT.</li>
+        </ul>
+      </section>
+    </main>
+    <script>
+      const slides = Array.from(document.querySelectorAll(".slide"));
+
+      function goToSlide(slideNumber) {
+        slides.forEach((slide) => {
+          slide.classList.toggle(
+            "active",
+            Number(slide.dataset.slide) === slideNumber,
+          );
+        });
+      }
+
+      window.addEventListener("message", (event) => {
+        if (event.data?.type === "presentation.goToSlide") {
+          goToSlide(Number(event.data.slideNumber) || 1);
+        }
+      });
+    </script>
+  </body>
+</html>

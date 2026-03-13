@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beforest Bulletin</title>
+    <link rel="stylesheet" href="./shared.css" />
+    <style>
+      .overview {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 40px;
+        height: 100%;
+      }
+
+      .overview-copy {
+        display: grid;
+        align-content: space-between;
+        min-height: 0;
+      }
+
+      .overview-stack {
+        display: grid;
+        gap: 20px;
+        max-width: 46rem;
+      }
+
+      .overview-list,
+      .presenter-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .overview-item,
+      .presenter-item {
+        padding: 16px 18px;
+        background: var(--panel);
+        border-left: 2px solid var(--terracotta);
+      }
+
+      .overview-item strong,
+      .presenter-item strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .overview-item p,
+      .presenter-item p {
+        font-size: 15px;
+        line-height: 1.5;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="slide">
+      <div class="folio-top">
+        <div class="team-label">Beforest / Monthly bulletin</div>
+        <div class="folio">Opening</div>
+      </div>
+
+      <section class="overview">
+        <div class="overview-copy">
+          <div class="overview-stack">
+            <p class="eyebrow">Introduction</p>
+            <h1 class="intro-title" style="font-size: clamp(42px, 5vw, 74px);">Beforest Bulletin</h1>
+            <p class="subhead" style="max-width: 42ch;">
+              A full-cycle update across hospitality, community, collectives, design, systems, and support.
+            </p>
+            <div class="overview-list">
+              <div class="overview-item">
+                <strong>Wings of Beforest</strong>
+                <p>Hospitality, Community Experience, Bewild</p>
+              </div>
+              <div class="overview-item">
+                <strong>Collectives</strong>
+                <p>Bhopal, Mumbai, Hammiyala, Hyderabad, Poomaale 1.0, Poomaale 2.0</p>
+              </div>
+              <div class="overview-item">
+                <strong>Research, Design, Growth</strong>
+                <p>CD&amp;S</p>
+              </div>
+              <div class="overview-item">
+                <strong>Systems &amp; Support</strong>
+                <p>Human Resources and BI / Business Intelligence</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-stack">
+          <div class="proof">
+            <small>Presented by</small>
+            <p>Soundharya, Seshu, Shivathmika</p>
+          </div>
+          <div class="proof">
+            <small>Operated by</small>
+            <p>Harsha</p>
+          </div>
+          <div class="proof">
+            <small>AI Role</small>
+            <p>An AI friend helping guide the room, keep transitions clean, and hand back to the team when needed.</p>
+          </div>
+          <div class="presenter-list">
+            <div class="presenter-item">
+              <strong>Meeting Context</strong>
+              <p>This presentation is being delivered on Google Meet.</p>
+            </div>
+            <div class="presenter-item">
+              <strong>Presentation Style</strong>
+              <p>Direct, insightful, audience-aware, and grounded in the actual team updates.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

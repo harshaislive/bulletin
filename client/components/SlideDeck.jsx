@@ -26,7 +26,7 @@ export default function SlideDeck({
   deckContainerRef,
   isFullscreen,
   onToggleFullscreen,
-  liveSubtitle,
+  aiStatusToast,
   selectedPresenter,
   onSelectPresenter,
 }) {
@@ -82,27 +82,11 @@ export default function SlideDeck({
           src={getSlidePath(currentSlide)}
           className="h-full w-full border-0"
         />
-        <div className="pointer-events-none absolute inset-x-0 bottom-6 z-20 flex justify-center px-6">
-          <div
-            className={`max-w-5xl rounded-md px-4 py-3 text-center ${
-              liveSubtitle
-                ? "bg-black/78 text-white shadow-[0_8px_24px_rgba(0,0,0,0.24)]"
-                : "bg-transparent text-transparent shadow-none"
-            }`}
-            style={{
-              textShadow:
-                "0 1px 1px rgba(0, 0, 0, 0.9), 0 2px 6px rgba(0, 0, 0, 0.65)",
-            }}
-          >
-            <p
-              className={`font-medium leading-[1.45] ${
-                isFullscreen ? "text-[28px]" : "text-[20px]"
-              }`}
-            >
-              {liveSubtitle || " "}
-            </p>
+        {aiStatusToast ? (
+          <div className="pointer-events-none absolute right-4 top-4 z-40 rounded-full bg-gray-950/92 px-4 py-2 text-sm font-semibold text-white shadow-lg">
+            {aiStatusToast}
           </div>
-        </div>
+        ) : null}
         <div className="absolute bottom-6 right-6 z-30 flex items-end gap-3">
           {presenters.map((presenter) => {
             const isSelected = selectedPresenter === presenter.id;
@@ -129,16 +113,6 @@ export default function SlideDeck({
           })}
         </div>
       </div>
-      {!isFullscreen ? (
-        <div className="rounded-xl bg-gray-950 px-4 py-3 text-white shadow-sm">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
-            Captions
-          </p>
-          <p className="mt-2 min-h-[28px] text-base leading-7">
-            {liveSubtitle || "Waiting for AI speech..."}
-          </p>
-        </div>
-      ) : null}
     </section>
   );
 }

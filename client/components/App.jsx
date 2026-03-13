@@ -17,57 +17,27 @@ export default function App() {
   const [autoplayEnabled, setAutoplayEnabled] = useState(true);
   const [slideStartedAt, setSlideStartedAt] = useState(Date.now());
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [liveSubtitle, setLiveSubtitle] = useState("");
   const [selectedPresenter, setSelectedPresenter] = useState(null);
+  const [aiStatusToast, setAiStatusToast] = useState("");
   const peerConnection = useRef(null);
   const audioElement = useRef(null);
   const slideFrame = useRef(null);
   const deckContainer = useRef(null);
   const localAudioTrack = useRef(null);
-  const subtitleResponseIdRef = useRef(null);
-  const subtitleBufferRef = useRef("");
+  const resumeAiOnNextSlideRef = useRef(null);
+  const aiStatusToastTimerRef = useRef(null);
+  const lastAiToggleAtRef = useRef(0);
   const maxSlide = getMaxSlideNumber();
 
-  function formatSubtitleWindow(text) {
-    const normalized = text.replace(/\s+/g, " ").trim();
-    if (!normalized) {
-      return "";
+  function showAiStatusToast(message) {
+    setAiStatusToast(message);
+    if (aiStatusToastTimerRef.current) {
+      window.clearTimeout(aiStatusToastTimerRef.current);
     }
-
-    const chunks = normalized
-      .split(/(?<=[.!?])\s+|(?<=,)\s+/)
-      .map((part) => part.trim())
-      .filter(Boolean);
-    const recentChunks = [];
-
-    for (let index = chunks.length - 1; index >= 0; index -= 1) {
-      const next = chunks[index];
-      const current = recentChunks.join(" ");
-      if (
-        recentChunks.length >= 2 ||
-        (current && `${next} ${current}`.length > 110)
-      ) {
-        break;
-      }
-      recentChunks.unshift(next);
-    }
-
-    if (recentChunks.length) {
-      return recentChunks.join("\n");
-    }
-
-    return normalized.slice(-110);
-  }
-
-  function resetSubtitleState() {
-    subtitleBufferRef.current = "";
-    setLiveSubtitle("");
-    subtitleResponseIdRef.current = null;
-  }
-
-  function setSubtitleText(text) {
-    subtitleBufferRef.current = text;
-    setLiveSubtitle(formatSubtitleWindow(text));
+    aiStatusToastTimerRef.current = window.setTimeout(() => {
+      setAiStatusToast("");
+      aiStatusToastTimerRef.current = null;
+    }, 1600);
   }
 
   async function startSession() {
@@ -75,7 +45,7 @@ export default function App() {
     setSlideInput("1");
     setSlideStartedAt(Date.now());
     setElapsedSeconds(0);
-    resetSubtitleState();
+    resumeAiOnNextSlideRef.current = null;
 
     // Get a session token for OpenAI Realtime API
     const tokenResponse = await fetch("/token");
@@ -154,7 +124,7 @@ export default function App() {
     setIsSessionActive(false);
     setDataChannel(null);
     setIsPushToTalkActive(false);
-    resetSubtitleState();
+    resumeAiOnNextSlideRef.current = null;
     peerConnection.current = null;
     localAudioTrack.current = null;
     if (audioElement.current) {
@@ -190,7 +160,6 @@ export default function App() {
       return;
     }
 
-    resetSubtitleState();
     sendClientEvent({
       type: "response.cancel",
     });
@@ -254,13 +223,37 @@ export default function App() {
     });
   }, [dataChannel, interruptModelOutput, sendClientEvent]);
 
+  const toggleAiNarration = useCallback(() => {
+    const now = Date.now();
+    if (now - lastAiToggleAtRef.current < 250) {
+      return;
+    }
+    lastAiToggleAtRef.current = now;
+
+    setAutoplayEnabled((currentValue) => {
+      const nextValue = !currentValue;
+
+      if (!nextValue) {
+        if (isSessionActive) {
+          interruptModelOutput();
+        }
+        resumeAiOnNextSlideRef.current = null;
+        showAiStatusToast("AI off");
+        return false;
+      }
+
+      resumeAiOnNextSlideRef.current = currentSlide;
+      showAiStatusToast("AI on");
+      return true;
+    });
+  }, [currentSlide, interruptModelOutput, isSessionActive]);
+
   const handleSlideChange = useCallback((slideNumber) => {
     const nextSlide = Math.min(Math.max(slideNumber, 1), maxSlide);
     setCurrentSlide(nextSlide);
     setSlideInput(String(nextSlide));
     setSlideStartedAt(Date.now());
     setElapsedSeconds(0);
-    resetSubtitleState();
   }, [maxSlide]);
 
   function handleHoldToTalkStart() {
@@ -293,78 +286,11 @@ export default function App() {
   // Attach event listeners to the data channel when a new one is created
   useEffect(() => {
     if (dataChannel) {
-      function extractSubtitleFromResponseDone(event) {
-        const outputs = event.response?.output || [];
-        const textParts = outputs.flatMap((item) => {
-          const content = Array.isArray(item?.content) ? item.content : [];
-          return content.flatMap((entry) => {
-            if (typeof entry?.transcript === "string" && entry.transcript.trim()) {
-              return [entry.transcript.trim()];
-            }
-
-            if (typeof entry?.text === "string" && entry.text.trim()) {
-              return [entry.text.trim()];
-            }
-
-            return [];
-          });
-        });
-
-        return textParts.join(" ").trim();
-      }
-
-      function appendSubtitleFromEvent(event) {
-        const transcriptDelta =
-          event.type === "response.audio_transcript.delta" ? event.delta : "";
-        const textDelta =
-          event.type === "response.output_text.delta" ||
-          event.type === "response.text.delta"
-            ? event.delta
-            : "";
-        const nextChunk = transcriptDelta || textDelta || "";
-
-        if (nextChunk) {
-          setSubtitleText(`${subtitleBufferRef.current}${nextChunk}`.trimStart());
-        }
-
-        if (event.type === "response.audio_transcript.done") {
-          const transcript = event.transcript || "";
-          if (transcript.trim()) {
-            setSubtitleText(transcript.trim());
-          }
-        }
-
-        if (event.type === "response.done") {
-          const finalSubtitle = extractSubtitleFromResponseDone(event);
-          if (finalSubtitle) {
-            setSubtitleText(finalSubtitle);
-          }
-        }
-      }
-
       // Append new server events to the list
       dataChannel.addEventListener("message", (e) => {
         const event = JSON.parse(e.data);
         if (!event.timestamp) {
           event.timestamp = new Date().toLocaleTimeString();
-        }
-
-        if (event.type === "response.created") {
-          const nextResponseId = event.response?.id || null;
-          subtitleResponseIdRef.current = nextResponseId;
-          setSubtitleText("");
-        }
-
-        appendSubtitleFromEvent(event);
-
-        if (event.type === "response.done") {
-          const responseId = event.response?.id || null;
-          if (
-            !subtitleResponseIdRef.current ||
-            responseId === subtitleResponseIdRef.current
-          ) {
-            subtitleResponseIdRef.current = null;
-          }
         }
 
         setEvents((prev) => [event, ...prev]);
@@ -401,6 +327,11 @@ export default function App() {
 
       if (event.key === "ArrowLeft") {
         handleSlideChange(currentSlide - 1);
+      }
+
+      if (event.key.toLowerCase() === "m") {
+        event.preventDefault();
+        toggleAiNarration();
       }
     }
 
@@ -447,7 +378,15 @@ export default function App() {
       frame?.removeEventListener("load", handleFrameLoad);
       cleanupFrameListeners();
     };
-  }, [currentSlide, handleSlideChange]);
+  }, [currentSlide, handleSlideChange, toggleAiNarration]);
+
+  useEffect(() => {
+    return () => {
+      if (aiStatusToastTimerRef.current) {
+        window.clearTimeout(aiStatusToastTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
@@ -474,7 +413,7 @@ export default function App() {
               deckContainerRef={deckContainer}
               isFullscreen={isFullscreen}
               onToggleFullscreen={toggleFullscreen}
-              liveSubtitle={liveSubtitle}
+              aiStatusToast={aiStatusToast}
               selectedPresenter={selectedPresenter}
               onSelectPresenter={handOffToPresenter}
             />
@@ -496,7 +435,7 @@ export default function App() {
               onHoldToTalkStart={handleHoldToTalkStart}
               onHoldToTalkEnd={handleHoldToTalkEnd}
               autoplayEnabled={autoplayEnabled}
-              onToggleAutoplay={() => setAutoplayEnabled((value) => !value)}
+              onToggleAutoplay={toggleAiNarration}
             />
           </section>
         </section>
@@ -560,6 +499,10 @@ export default function App() {
             elapsedSeconds={elapsedSeconds}
             onInterruptNarration={interruptModelOutput}
             selectedPresenter={selectedPresenter}
+            resumeAiOnNextSlideFrom={resumeAiOnNextSlideRef.current}
+            onResumeAiHandled={() => {
+              resumeAiOnNextSlideRef.current = null;
+            }}
           />
         </section>
       </main>

@@ -87,7 +87,7 @@ function SessionActive({
         onClick={onToggleAutoplay}
         className={autoplayEnabled ? "bg-amber-600" : "bg-gray-600"}
       >
-        {autoplayEnabled ? "autoplay on" : "autoplay off"}
+        {autoplayEnabled ? "ai on" : "ai off"}
       </Button>
       <Button onClick={stopSession} icon={<CloudOff height={16} />}>
         disconnect

@@ -102,6 +102,8 @@ export default function ToolPanel({
   elapsedSeconds,
   onInterruptNarration,
   selectedPresenter,
+  resumeAiOnNextSlideFrom,
+  onResumeAiHandled,
 }) {
   const [hasStartedPrompting, setHasStartedPrompting] = useState(false);
   const [lastPromptedSlide, setLastPromptedSlide] = useState(null);
@@ -144,6 +146,7 @@ export default function ToolPanel({
     if (
       !isSessionActive ||
       !autoplayEnabled ||
+      resumeAiOnNextSlideFrom === currentSlide ||
       !hasStartedPrompting ||
       lastPromptedSlide === currentSlide
     ) {
@@ -161,6 +164,7 @@ export default function ToolPanel({
       setTimeWarningSent(false);
       previousSlideRef.current = currentSlide;
       slidePromptTimerRef.current = null;
+      onResumeAiHandled?.();
     }, 120);
 
     return () => {
@@ -176,6 +180,8 @@ export default function ToolPanel({
     isSessionActive,
     lastPromptedSlide,
     onInterruptNarration,
+    onResumeAiHandled,
+    resumeAiOnNextSlideFrom,
     selectedPresenter,
     sendClientEvent,
   ]);

@@ -137,7 +137,6 @@ export default function ToolPanel({
       !isSessionActive ||
       !autoplayEnabled ||
       resumeAiOnNextSlideFrom === currentSlide ||
-      !hasStartedPrompting ||
       lastPromptedSlide === currentSlide
     ) {
       return;
@@ -149,6 +148,7 @@ export default function ToolPanel({
       sendPrompt(sendClientEvent, currentSlide, {
         previousSlideNumber: previousSlideRef.current,
       });
+      setHasStartedPrompting(true);
       setLastPromptedSlide(currentSlide);
       setTimeWarningSent(false);
       previousSlideRef.current = currentSlide;

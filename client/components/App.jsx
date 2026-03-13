@@ -19,12 +19,12 @@ export default function App() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [selectedPresenter, setSelectedPresenter] = useState(null);
   const [aiStatusToast, setAiStatusToast] = useState("");
+  const [resumeAiOnNextSlideFrom, setResumeAiOnNextSlideFrom] = useState(null);
   const peerConnection = useRef(null);
   const audioElement = useRef(null);
   const slideFrame = useRef(null);
   const deckContainer = useRef(null);
   const localAudioTrack = useRef(null);
-  const resumeAiOnNextSlideRef = useRef(null);
   const aiStatusToastTimerRef = useRef(null);
   const lastAiToggleAtRef = useRef(0);
   const maxSlide = getMaxSlideNumber();
@@ -45,7 +45,7 @@ export default function App() {
     setSlideInput("1");
     setSlideStartedAt(Date.now());
     setElapsedSeconds(0);
-    resumeAiOnNextSlideRef.current = null;
+    setResumeAiOnNextSlideFrom(null);
 
     // Get a session token for OpenAI Realtime API
     const tokenResponse = await fetch("/token");
@@ -124,7 +124,7 @@ export default function App() {
     setIsSessionActive(false);
     setDataChannel(null);
     setIsPushToTalkActive(false);
-    resumeAiOnNextSlideRef.current = null;
+    setResumeAiOnNextSlideFrom(null);
     peerConnection.current = null;
     localAudioTrack.current = null;
     if (audioElement.current) {
@@ -237,12 +237,12 @@ export default function App() {
         if (isSessionActive) {
           interruptModelOutput();
         }
-        resumeAiOnNextSlideRef.current = null;
+        setResumeAiOnNextSlideFrom(null);
         showAiStatusToast("AI off");
         return false;
       }
 
-      resumeAiOnNextSlideRef.current = currentSlide;
+      setResumeAiOnNextSlideFrom(currentSlide);
       showAiStatusToast("AI on");
       return true;
     });
@@ -495,10 +495,8 @@ export default function App() {
             autoplayEnabled={autoplayEnabled}
             elapsedSeconds={elapsedSeconds}
             onInterruptNarration={interruptModelOutput}
-            resumeAiOnNextSlideFrom={resumeAiOnNextSlideRef.current}
-            onResumeAiHandled={() => {
-              resumeAiOnNextSlideRef.current = null;
-            }}
+            resumeAiOnNextSlideFrom={resumeAiOnNextSlideFrom}
+            onResumeAiHandled={() => setResumeAiOnNextSlideFrom(null)}
           />
         </section>
       </main>

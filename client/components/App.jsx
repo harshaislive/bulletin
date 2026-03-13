@@ -17,11 +17,14 @@ export default function App() {
   const [autoplayEnabled, setAutoplayEnabled] = useState(true);
   const [slideStartedAt, setSlideStartedAt] = useState(Date.now());
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [liveSubtitle, setLiveSubtitle] = useState("");
+  const [selectedPresenter, setSelectedPresenter] = useState(null);
   const peerConnection = useRef(null);
   const audioElement = useRef(null);
   const slideFrame = useRef(null);
   const deckContainer = useRef(null);
   const localAudioTrack = useRef(null);
+  const subtitleResponseIdRef = useRef(null);
   const maxSlide = getMaxSlideNumber();
 
   async function startSession() {
@@ -29,6 +32,8 @@ export default function App() {
     setSlideInput("1");
     setSlideStartedAt(Date.now());
     setElapsedSeconds(0);
+    setLiveSubtitle("");
+    subtitleResponseIdRef.current = null;
 
     // Get a session token for OpenAI Realtime API
     const tokenResponse = await fetch("/token");
@@ -107,6 +112,8 @@ export default function App() {
     setIsSessionActive(false);
     setDataChannel(null);
     setIsPushToTalkActive(false);
+    setLiveSubtitle("");
+    subtitleResponseIdRef.current = null;
     peerConnection.current = null;
     localAudioTrack.current = null;
     if (audioElement.current) {
@@ -137,6 +144,21 @@ export default function App() {
     }
   }, [dataChannel]);
 
+  const interruptModelOutput = useCallback(() => {
+    if (!dataChannel) {
+      return;
+    }
+
+    setLiveSubtitle("");
+    subtitleResponseIdRef.current = null;
+    sendClientEvent({
+      type: "response.cancel",
+    });
+    sendClientEvent({
+      type: "output_audio_buffer.clear",
+    });
+  }, [dataChannel, sendClientEvent]);
+
   // Send a text message to the model
   const sendTextMessage = useCallback((message) => {
     const event = {
@@ -163,6 +185,8 @@ export default function App() {
     setSlideInput(String(nextSlide));
     setSlideStartedAt(Date.now());
     setElapsedSeconds(0);
+    setLiveSubtitle("");
+    subtitleResponseIdRef.current = null;
   }, [maxSlide]);
 
   function handleHoldToTalkStart() {
@@ -170,9 +194,7 @@ export default function App() {
 
     setIsPushToTalkActive(true);
     localAudioTrack.current.enabled = true;
-    sendClientEvent({
-      type: "response.cancel",
-    });
+    interruptModelOutput();
   }
 
   function handleHoldToTalkEnd() {
@@ -197,11 +219,51 @@ export default function App() {
   // Attach event listeners to the data channel when a new one is created
   useEffect(() => {
     if (dataChannel) {
+      function appendSubtitleFromEvent(event) {
+        const transcriptDelta =
+          event.type === "response.audio_transcript.delta" ? event.delta : "";
+        const textDelta =
+          event.type === "response.output_text.delta" ||
+          event.type === "response.text.delta"
+            ? event.delta
+            : "";
+        const nextChunk = transcriptDelta || textDelta || "";
+
+        if (nextChunk) {
+          setLiveSubtitle((prev) => `${prev}${nextChunk}`.trimStart());
+        }
+
+        if (event.type === "response.audio_transcript.done") {
+          const transcript = event.transcript || "";
+          if (transcript.trim()) {
+            setLiveSubtitle(transcript.trim());
+          }
+        }
+      }
+
       // Append new server events to the list
       dataChannel.addEventListener("message", (e) => {
         const event = JSON.parse(e.data);
         if (!event.timestamp) {
           event.timestamp = new Date().toLocaleTimeString();
+        }
+
+        if (event.type === "response.created") {
+          const nextResponseId = event.response?.id || null;
+          subtitleResponseIdRef.current = nextResponseId;
+          setLiveSubtitle("");
+        }
+
+        appendSubtitleFromEvent(event);
+
+        if (event.type === "response.done") {
+          const responseId = event.response?.id || null;
+          if (
+            !subtitleResponseIdRef.current ||
+            responseId === subtitleResponseIdRef.current
+          ) {
+            subtitleResponseIdRef.current = null;
+          }
         }
 
         setEvents((prev) => [event, ...prev]);
@@ -241,18 +303,50 @@ export default function App() {
       }
     }
 
+    function bindFrameNavigation() {
+      const frame = slideFrame.current;
+      if (!frame) {
+        return () => {};
+      }
+
+      try {
+        const frameWindow = frame.contentWindow;
+        const frameDocument = frame.contentDocument;
+
+        frameWindow?.addEventListener("keydown", handleKeyDown);
+        frameDocument?.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+          frameWindow?.removeEventListener("keydown", handleKeyDown);
+          frameDocument?.removeEventListener("keydown", handleKeyDown);
+        };
+      } catch (error) {
+        return () => {};
+      }
+    }
+
     function handleFullscreenChange() {
       setIsFullscreen(Boolean(document.fullscreenElement));
     }
 
+    let cleanupFrameListeners = bindFrameNavigation();
+    const frame = slideFrame.current;
+    const handleFrameLoad = () => {
+      cleanupFrameListeners();
+      cleanupFrameListeners = bindFrameNavigation();
+    };
+
     window.addEventListener("keydown", handleKeyDown);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
+    frame?.addEventListener("load", handleFrameLoad);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      frame?.removeEventListener("load", handleFrameLoad);
+      cleanupFrameListeners();
     };
-  }, [currentSlide, maxSlide]);
+  }, [currentSlide, handleSlideChange]);
 
   return (
     <>
@@ -279,6 +373,9 @@ export default function App() {
               deckContainerRef={deckContainer}
               isFullscreen={isFullscreen}
               onToggleFullscreen={toggleFullscreen}
+              liveSubtitle={liveSubtitle}
+              selectedPresenter={selectedPresenter}
+              onSelectPresenter={setSelectedPresenter}
             />
           </section>
           <section
@@ -360,6 +457,8 @@ export default function App() {
             onSlideChange={handleSlideChange}
             autoplayEnabled={autoplayEnabled}
             elapsedSeconds={elapsedSeconds}
+            onInterruptNarration={interruptModelOutput}
+            selectedPresenter={selectedPresenter}
           />
         </section>
       </main>

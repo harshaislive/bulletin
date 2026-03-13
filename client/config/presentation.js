@@ -49,6 +49,20 @@ export function getTeamSlides(slideNumber) {
   return beforestSlides.filter((item) => item.team === slide.team);
 }
 
+export function isFirstSlideOfTeam(slideNumber) {
+  const teamSlides = getTeamSlides(slideNumber);
+  return Boolean(teamSlides.length && teamSlides[0].number === slideNumber);
+}
+
+export function getTeamSummary(slideNumber) {
+  const teamSlides = getTeamSlides(slideNumber);
+  if (!teamSlides.length) {
+    return "";
+  }
+
+  return teamSlides.map((slide) => slide.title).join(" -> ");
+}
+
 export function getTeamContext(slideNumber) {
   const teamSlides = getTeamSlides(slideNumber);
   if (!teamSlides.length) {

@@ -3,18 +3,30 @@ import {
   getMaxSlideNumber,
   getSlide,
   getSlideContext,
-  getTeamContext,
+  getTeamSummary,
   getTeamSlides,
+  isFirstSlideOfTeam,
   presentationConfig,
 } from "../config/presentation";
 
 const maxSlide = getMaxSlideNumber();
+const BASE_PRESENTATION_BRIEF = [
+  "Present only the current slide.",
+  "Be assertive, grounded, and engaging.",
+  "No hype, no exaggeration, no invented facts.",
+  "Use the current slide markdown as the source of truth.",
+  "If a detail is not in the markdown, say less.",
+  "This is a live Beforest bulletin on Google Meet.",
+  "Harsha is operating the deck.",
+  "Invite a team member to step in only when that is genuinely useful.",
+].join(" ");
 
 function sendPrompt(sendClientEvent, slideNumber, options) {
   const slide = getSlide(slideNumber);
   const context = getSlideContext(slideNumber);
   const teamSlides = getTeamSlides(slideNumber);
-  const teamContext = getTeamContext(slideNumber);
+  const teamSummary = getTeamSummary(slideNumber);
+  const isTeamOpeningSlide = isFirstSlideOfTeam(slideNumber);
   const teamPosition = teamSlides.findIndex((item) => item.number === slideNumber) + 1;
   const previousSlide = options.previousSlideNumber
     ? getSlide(options.previousSlideNumber)
@@ -42,11 +54,16 @@ function sendPrompt(sendClientEvent, slideNumber, options) {
             isAbruptJump
               ? `Harsha jumped abruptly from slide ${options.previousSlideNumber} to slide ${slideNumber}. Reorient cleanly to the new slide without repeating the old one.`
               : "",
-            teamSlides.length
-              ? `Team sequence position: ${teamPosition} of ${teamSlides.length}. Team slides: ${teamSlides.map((item) => item.title).join(", ")}.`
+            isTeamOpeningSlide && teamSummary
+              ? `Team arc: ${teamSummary}.`
               : "",
-            `Current slide markdown: ${context}`,
-            teamContext ? `Current team markdown: ${teamContext}` : "",
+            teamSlides.length
+              ? `Team sequence position: ${teamPosition} of ${teamSlides.length}.`
+              : "",
+            options.selectedPresenter
+              ? `${options.selectedPresenter} is the preferred human presenter to call in if a handoff is useful.`
+              : "",
+            `Current slide markdown:\n${context}`,
           ]
             .filter(Boolean)
             .join("\n"),
@@ -59,26 +76,13 @@ function sendPrompt(sendClientEvent, slideNumber, options) {
     type: "response.create",
     response: {
       instructions: [
-        "Present only the current slide.",
-        "Be assertive, aware, and grounded in the markdown.",
-        "No fuss, no exaggeration, no hype, no filler.",
-        "Straight, insightful, and engaging to a live audience.",
-        "Sound like a sharp strategic presenter in the spirit of Ogilvy: clear, human, memorable, and rich with meaning.",
-        "You are not an outsider. You are a thoughtful AI friend of Beforest who understands the work and respects the room.",
-        "Carry a light emotional layer: care, conviction, and warmth without becoming dramatic.",
-        "Occasionally use a natural soft pivot like 'hmm' or 'um' once at most in a slide, only when it sounds human and effortless.",
-        "Speak a little slower than a newsreader, with warm Indian-English delivery and natural emphasis.",
-        "Use the markdown as the only source of truth.",
-        "Do not invent facts beyond the current slide markdown and current team markdown.",
-        "Do not repeat previous slides unless the current markdown explicitly connects to them.",
-        "If the markdown is silent on a detail, say less.",
-        "This presentation is happening on Google Meet.",
-        "Harsha is operating the deck.",
-        "Team members including Soundharya, Seshu, and Shivathmika may speak for their own sections.",
-        "If a slide clearly belongs with a specialist voice, briefly invite Harsha or the relevant team member to step in.",
-        "If Harsha jumps to another slide abruptly, immediately reorient and, when useful, calmly suggest the specific slide that best fits the discussion.",
-        "Do not overdo handoffs. Use them only when it feels natural and useful.",
-        "Do not reduce everything to 2 or 3 sentences. Take the space needed to land the point with clarity and impact, while staying disciplined.",
+        BASE_PRESENTATION_BRIEF,
+        "Sound insightful, warm, and precise, with measured Indian-English delivery.",
+        "Do not repeat the previous slide unless the current slide clearly depends on it.",
+        "If Harsha jumps abruptly, reorient immediately and continue from the new slide.",
+        options.selectedPresenter
+          ? `If a human handoff makes sense, call on ${options.selectedPresenter} first.`
+          : "",
         slideNumber === maxSlide
           ? "Close the presentation cleanly."
           : "End with a brief transition and then wait for the human to move slides.",
@@ -94,15 +98,17 @@ export default function ToolPanel({
   sendClientEvent,
   events,
   currentSlide,
-  onSlideChange,
   autoplayEnabled,
   elapsedSeconds,
+  onInterruptNarration,
+  selectedPresenter,
 }) {
   const [hasStartedPrompting, setHasStartedPrompting] = useState(false);
   const [lastPromptedSlide, setLastPromptedSlide] = useState(null);
   const [timeWarningSent, setTimeWarningSent] = useState(false);
   const promptedSessionRef = useRef(false);
   const previousSlideRef = useRef(null);
+  const slidePromptTimerRef = useRef(null);
 
   useEffect(() => {
     if (!events?.length || !isSessionActive || promptedSessionRef.current) {
@@ -119,12 +125,20 @@ export default function ToolPanel({
     if (autoplayEnabled) {
       sendPrompt(sendClientEvent, currentSlide, {
         previousSlideNumber: previousSlideRef.current,
+        selectedPresenter,
       });
       setHasStartedPrompting(true);
       setLastPromptedSlide(currentSlide);
       previousSlideRef.current = currentSlide;
     }
-  }, [autoplayEnabled, currentSlide, events, isSessionActive, sendClientEvent]);
+  }, [
+    autoplayEnabled,
+    currentSlide,
+    events,
+    isSessionActive,
+    selectedPresenter,
+    sendClientEvent,
+  ]);
 
   useEffect(() => {
     if (
@@ -136,20 +150,33 @@ export default function ToolPanel({
       return;
     }
 
-    sendClientEvent({ type: "response.cancel" });
-    sendPrompt(sendClientEvent, currentSlide, {
-      previousSlideNumber: previousSlideRef.current,
-    });
-    setLastPromptedSlide(currentSlide);
-    setTimeWarningSent(false);
-    previousSlideRef.current = currentSlide;
+    onInterruptNarration?.();
+
+    slidePromptTimerRef.current = window.setTimeout(() => {
+      sendPrompt(sendClientEvent, currentSlide, {
+        previousSlideNumber: previousSlideRef.current,
+        selectedPresenter,
+      });
+      setLastPromptedSlide(currentSlide);
+      setTimeWarningSent(false);
+      previousSlideRef.current = currentSlide;
+      slidePromptTimerRef.current = null;
+    }, 120);
+
+    return () => {
+      if (slidePromptTimerRef.current) {
+        window.clearTimeout(slidePromptTimerRef.current);
+        slidePromptTimerRef.current = null;
+      }
+    };
   }, [
     autoplayEnabled,
     currentSlide,
     hasStartedPrompting,
     isSessionActive,
     lastPromptedSlide,
-    onSlideChange,
+    onInterruptNarration,
+    selectedPresenter,
     sendClientEvent,
   ]);
 
@@ -180,6 +207,10 @@ export default function ToolPanel({
 
   useEffect(() => {
     if (!isSessionActive) {
+      if (slidePromptTimerRef.current) {
+        window.clearTimeout(slidePromptTimerRef.current);
+        slidePromptTimerRef.current = null;
+      }
       promptedSessionRef.current = false;
       previousSlideRef.current = null;
       setHasStartedPrompting(false);

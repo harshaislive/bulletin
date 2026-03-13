@@ -27,6 +27,8 @@ export default function SlideDeck({
   isFullscreen,
   onToggleFullscreen,
   aiStatusToast,
+  autoplayEnabled,
+  onToggleAiNarration,
   selectedPresenter,
   onSelectPresenter,
 }) {
@@ -88,6 +90,16 @@ export default function SlideDeck({
           </div>
         ) : null}
         <div className="absolute bottom-6 right-6 z-30 flex items-end gap-3">
+          <button
+            type="button"
+            title={autoplayEnabled ? "Turn AI off" : "Turn AI on"}
+            onClick={onToggleAiNarration}
+            className={`rounded-full px-4 py-3 text-sm font-semibold text-white shadow-lg transition ${
+              autoplayEnabled ? "bg-amber-600" : "bg-gray-700"
+            }`}
+          >
+            {autoplayEnabled ? "AI on" : "AI off"}
+          </button>
           {presenters.map((presenter) => {
             const isSelected = selectedPresenter === presenter.id;
             return (

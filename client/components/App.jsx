@@ -328,11 +328,6 @@ export default function App() {
       if (event.key === "ArrowLeft") {
         handleSlideChange(currentSlide - 1);
       }
-
-      if (event.key.toLowerCase() === "m") {
-        event.preventDefault();
-        toggleAiNarration();
-      }
     }
 
     function bindFrameNavigation() {
@@ -378,7 +373,7 @@ export default function App() {
       frame?.removeEventListener("load", handleFrameLoad);
       cleanupFrameListeners();
     };
-  }, [currentSlide, handleSlideChange, toggleAiNarration]);
+  }, [currentSlide, handleSlideChange]);
 
   useEffect(() => {
     return () => {
@@ -414,6 +409,8 @@ export default function App() {
               isFullscreen={isFullscreen}
               onToggleFullscreen={toggleFullscreen}
               aiStatusToast={aiStatusToast}
+              autoplayEnabled={autoplayEnabled}
+              onToggleAiNarration={toggleAiNarration}
               selectedPresenter={selectedPresenter}
               onSelectPresenter={handOffToPresenter}
             />
@@ -498,7 +495,6 @@ export default function App() {
             autoplayEnabled={autoplayEnabled}
             elapsedSeconds={elapsedSeconds}
             onInterruptNarration={interruptModelOutput}
-            selectedPresenter={selectedPresenter}
             resumeAiOnNextSlideFrom={resumeAiOnNextSlideRef.current}
             onResumeAiHandled={() => {
               resumeAiOnNextSlideRef.current = null;

@@ -18,7 +18,6 @@ const BASE_PRESENTATION_BRIEF = [
   "If a detail is not in the markdown, say less.",
   "This is a live Beforest bulletin on Google Meet.",
   "Harsha is operating the deck.",
-  "Invite a team member to step in only when that is genuinely useful.",
 ].join(" ");
 
 function sendPrompt(sendClientEvent, slideNumber, options) {
@@ -60,9 +59,6 @@ function sendPrompt(sendClientEvent, slideNumber, options) {
             teamSlides.length
               ? `Team sequence position: ${teamPosition} of ${teamSlides.length}.`
               : "",
-            options.selectedPresenter
-              ? `${options.selectedPresenter} is the preferred human presenter to call in if a handoff is useful.`
-              : "",
             `Current slide markdown:\n${context}`,
           ]
             .filter(Boolean)
@@ -80,9 +76,6 @@ function sendPrompt(sendClientEvent, slideNumber, options) {
         "Sound insightful, warm, and precise, with measured Indian-English delivery.",
         "Do not repeat the previous slide unless the current slide clearly depends on it.",
         "If Harsha jumps abruptly, reorient immediately and continue from the new slide.",
-        options.selectedPresenter
-          ? `If a human handoff makes sense, call on ${options.selectedPresenter} first.`
-          : "",
         slideNumber === maxSlide
           ? "Close the presentation cleanly."
           : "End with a brief transition and then wait for the human to move slides.",
@@ -101,7 +94,6 @@ export default function ToolPanel({
   autoplayEnabled,
   elapsedSeconds,
   onInterruptNarration,
-  selectedPresenter,
   resumeAiOnNextSlideFrom,
   onResumeAiHandled,
 }) {
@@ -127,7 +119,6 @@ export default function ToolPanel({
     if (autoplayEnabled) {
       sendPrompt(sendClientEvent, currentSlide, {
         previousSlideNumber: previousSlideRef.current,
-        selectedPresenter,
       });
       setHasStartedPrompting(true);
       setLastPromptedSlide(currentSlide);
@@ -138,7 +129,6 @@ export default function ToolPanel({
     currentSlide,
     events,
     isSessionActive,
-    selectedPresenter,
     sendClientEvent,
   ]);
 
@@ -158,7 +148,6 @@ export default function ToolPanel({
     slidePromptTimerRef.current = window.setTimeout(() => {
       sendPrompt(sendClientEvent, currentSlide, {
         previousSlideNumber: previousSlideRef.current,
-        selectedPresenter,
       });
       setLastPromptedSlide(currentSlide);
       setTimeWarningSent(false);
@@ -182,7 +171,6 @@ export default function ToolPanel({
     onInterruptNarration,
     onResumeAiHandled,
     resumeAiOnNextSlideFrom,
-    selectedPresenter,
     sendClientEvent,
   ]);
 

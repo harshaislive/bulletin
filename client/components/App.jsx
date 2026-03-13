@@ -25,15 +25,57 @@ export default function App() {
   const deckContainer = useRef(null);
   const localAudioTrack = useRef(null);
   const subtitleResponseIdRef = useRef(null);
+  const subtitleBufferRef = useRef("");
   const maxSlide = getMaxSlideNumber();
+
+  function formatSubtitleWindow(text) {
+    const normalized = text.replace(/\s+/g, " ").trim();
+    if (!normalized) {
+      return "";
+    }
+
+    const chunks = normalized
+      .split(/(?<=[.!?])\s+|(?<=,)\s+/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+    const recentChunks = [];
+
+    for (let index = chunks.length - 1; index >= 0; index -= 1) {
+      const next = chunks[index];
+      const current = recentChunks.join(" ");
+      if (
+        recentChunks.length >= 2 ||
+        (current && `${next} ${current}`.length > 110)
+      ) {
+        break;
+      }
+      recentChunks.unshift(next);
+    }
+
+    if (recentChunks.length) {
+      return recentChunks.join("\n");
+    }
+
+    return normalized.slice(-110);
+  }
+
+  function resetSubtitleState() {
+    subtitleBufferRef.current = "";
+    setLiveSubtitle("");
+    subtitleResponseIdRef.current = null;
+  }
+
+  function setSubtitleText(text) {
+    subtitleBufferRef.current = text;
+    setLiveSubtitle(formatSubtitleWindow(text));
+  }
 
   async function startSession() {
     setCurrentSlide(1);
     setSlideInput("1");
     setSlideStartedAt(Date.now());
     setElapsedSeconds(0);
-    setLiveSubtitle("");
-    subtitleResponseIdRef.current = null;
+    resetSubtitleState();
 
     // Get a session token for OpenAI Realtime API
     const tokenResponse = await fetch("/token");
@@ -112,8 +154,7 @@ export default function App() {
     setIsSessionActive(false);
     setDataChannel(null);
     setIsPushToTalkActive(false);
-    setLiveSubtitle("");
-    subtitleResponseIdRef.current = null;
+    resetSubtitleState();
     peerConnection.current = null;
     localAudioTrack.current = null;
     if (audioElement.current) {
@@ -149,8 +190,7 @@ export default function App() {
       return;
     }
 
-    setLiveSubtitle("");
-    subtitleResponseIdRef.current = null;
+    resetSubtitleState();
     sendClientEvent({
       type: "response.cancel",
     });
@@ -179,14 +219,48 @@ export default function App() {
     sendClientEvent({ type: "response.create" });
   }, [sendClientEvent]);
 
+  const handOffToPresenter = useCallback((presenterName) => {
+    if (!presenterName) {
+      setSelectedPresenter(null);
+      return;
+    }
+
+    setSelectedPresenter(presenterName);
+    interruptModelOutput();
+
+    if (!dataChannel) {
+      return;
+    }
+
+    sendClientEvent({
+      type: "conversation.item.create",
+      item: {
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: `Interrupt now. Say exactly: "Handing over to ${presenterName}." Then stop and wait for the human.`,
+          },
+        ],
+      },
+    });
+    sendClientEvent({
+      type: "response.create",
+      response: {
+        instructions:
+          "Say exactly the requested handoff sentence. Do not add anything before or after it.",
+      },
+    });
+  }, [dataChannel, interruptModelOutput, sendClientEvent]);
+
   const handleSlideChange = useCallback((slideNumber) => {
     const nextSlide = Math.min(Math.max(slideNumber, 1), maxSlide);
     setCurrentSlide(nextSlide);
     setSlideInput(String(nextSlide));
     setSlideStartedAt(Date.now());
     setElapsedSeconds(0);
-    setLiveSubtitle("");
-    subtitleResponseIdRef.current = null;
+    resetSubtitleState();
   }, [maxSlide]);
 
   function handleHoldToTalkStart() {
@@ -219,6 +293,26 @@ export default function App() {
   // Attach event listeners to the data channel when a new one is created
   useEffect(() => {
     if (dataChannel) {
+      function extractSubtitleFromResponseDone(event) {
+        const outputs = event.response?.output || [];
+        const textParts = outputs.flatMap((item) => {
+          const content = Array.isArray(item?.content) ? item.content : [];
+          return content.flatMap((entry) => {
+            if (typeof entry?.transcript === "string" && entry.transcript.trim()) {
+              return [entry.transcript.trim()];
+            }
+
+            if (typeof entry?.text === "string" && entry.text.trim()) {
+              return [entry.text.trim()];
+            }
+
+            return [];
+          });
+        });
+
+        return textParts.join(" ").trim();
+      }
+
       function appendSubtitleFromEvent(event) {
         const transcriptDelta =
           event.type === "response.audio_transcript.delta" ? event.delta : "";
@@ -230,13 +324,20 @@ export default function App() {
         const nextChunk = transcriptDelta || textDelta || "";
 
         if (nextChunk) {
-          setLiveSubtitle((prev) => `${prev}${nextChunk}`.trimStart());
+          setSubtitleText(`${subtitleBufferRef.current}${nextChunk}`.trimStart());
         }
 
         if (event.type === "response.audio_transcript.done") {
           const transcript = event.transcript || "";
           if (transcript.trim()) {
-            setLiveSubtitle(transcript.trim());
+            setSubtitleText(transcript.trim());
+          }
+        }
+
+        if (event.type === "response.done") {
+          const finalSubtitle = extractSubtitleFromResponseDone(event);
+          if (finalSubtitle) {
+            setSubtitleText(finalSubtitle);
           }
         }
       }
@@ -251,7 +352,7 @@ export default function App() {
         if (event.type === "response.created") {
           const nextResponseId = event.response?.id || null;
           subtitleResponseIdRef.current = nextResponseId;
-          setLiveSubtitle("");
+          setSubtitleText("");
         }
 
         appendSubtitleFromEvent(event);
@@ -375,7 +476,7 @@ export default function App() {
               onToggleFullscreen={toggleFullscreen}
               liveSubtitle={liveSubtitle}
               selectedPresenter={selectedPresenter}
-              onSelectPresenter={setSelectedPresenter}
+              onSelectPresenter={handOffToPresenter}
             />
           </section>
           <section

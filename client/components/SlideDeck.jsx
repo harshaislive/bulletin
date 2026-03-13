@@ -129,6 +129,16 @@ export default function SlideDeck({
           })}
         </div>
       </div>
+      {!isFullscreen ? (
+        <div className="rounded-xl bg-gray-950 px-4 py-3 text-white shadow-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
+            Captions
+          </p>
+          <p className="mt-2 min-h-[28px] text-base leading-7">
+            {liveSubtitle || "Waiting for AI speech..."}
+          </p>
+        </div>
+      ) : null}
     </section>
   );
 }
